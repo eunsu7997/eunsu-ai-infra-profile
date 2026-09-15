@@ -14,126 +14,133 @@
   <header class="site-header">
     <a class="brand" href="#home" aria-label="첫 화면으로 이동">EUNSU<span>.INFRA</span></a>
     <nav aria-label="주요 메뉴">
-      <a href="#about">ABOUT</a>
-      <a href="#evidence">EVIDENCE</a>
-      <a href="#roadmap">ROADMAP</a>
+      <a href="#scope">공개 범위</a>
+      <a href="#evidence">강점과 근거</a>
+      <a href="#direction">현재 방향</a>
     </nav>
-    <button id="motionToggle" class="motion-toggle" type="button" aria-pressed="false">
-      움직임 줄이기
-    </button>
+    <button id="motionToggle" class="motion-toggle" type="button" aria-pressed="false">움직임 줄이기</button>
   </header>
 
   <main id="main">
     <section id="home" class="hero" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="eyebrow">FROM FIELD OPERATIONS TO AI INFRASTRUCTURE</p>
-        <h1 id="hero-title">문제를 발견하고,<br><span>끝까지 해결하는 사람.</span></h1>
+        <p class="eyebrow">ONE-PAGE PROFILE · AI INFRASTRUCTURE</p>
+        <h1 id="hero-title">문제를 관찰하고,<br><span>근거를 남기며 해결합니다.</span></h1>
         <p class="hero-text">
-          안녕하세요, <strong>유은수</strong>입니다.<br>
-          현장 유지보수 경험을 기반으로 AI 인프라 엔지니어를 준비하고 있습니다.
+          안녕하세요, <strong>유은수</strong>입니다. 현장 유지보수 경험을 바탕으로
+          AI Infrastructure Engineer를 준비하고 있습니다.
         </p>
-        <p class="audience">
-          이 페이지는 <strong>채용 담당자와 함께 일할 동료</strong>에게
-          제가 어떤 방식으로 문제를 해결하고 성장하는지 보여주기 위해 만들었습니다.
+        <p class="purpose">
+          이 페이지는 <strong>AI 인프라 직무 채용 담당자와 함께 일할 동료</strong>에게
+          제가 어떤 방식으로 문제를 해결하고 배우는 사람인지 보여주기 위한 공개 자기소개 페이지입니다.
         </p>
         <div class="hero-actions">
-          <a class="button primary" href="#evidence">내 강점과 근거 보기</a>
-          <a class="button secondary" href="#roadmap">학습 로드맵 보기</a>
+          <a class="button primary" href="#evidence">강점 3개 보기</a>
+          <a class="button secondary" href="https://github.com/eunsu7997/eunsu-ai-infra-profile">공개 소스 보기</a>
         </div>
       </div>
 
-      <aside class="status-card" aria-label="현재 상태">
-        <div class="terminal-top"><span></span><span></span><span></span></div>
-        <p class="prompt">$ whoami</p>
-        <p class="terminal-answer">eunsu / future-ai-infra-engineer</p>
-        <p class="prompt">$ current_focus</p>
-        <p class="terminal-answer">Linux → Docker → Kubernetes → AWS → LLM Serving</p>
-        <p class="prompt">$ mindset</p>
-        <p class="terminal-answer">observe. diagnose. improve. repeat.</p>
-        <div class="online"><i></i> LEARNING IN PROGRESS</div>
+      <aside class="first-screen-proof" aria-label="첫 화면 활동과 근거 요약">
+        <div class="proof-card activity-proof">
+          <p class="proof-label">ACTIVITY / 지금 하는 일</p>
+          <h2>AI 인프라 학습을<br>실제 결과물로 연결하기</h2>
+          <p>Linux → Git/Python → Docker → Kubernetes → AWS → GPU/LLM Serving → Observability 순서로 학습하고 있습니다.</p>
+        </div>
+        <div class="proof-card evidence-proof">
+          <p class="proof-label">EVIDENCE / 공개 근거</p>
+          <h2>말보다 확인 가능한 기록</h2>
+          <p>이 페이지의 전체 HTML·CSS·JavaScript와 수정 기록을 공개 저장소에서 바로 확인할 수 있습니다.</p>
+          <a class="inline-link" href="https://github.com/eunsu7997/eunsu-ai-infra-profile">GitHub 저장소 열기 →</a>
+        </div>
+        <div class="status-line" aria-label="현재 학습 상태">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>현재 초점: Linux 기본기와 운영 관점의 문제 해결</span>
+        </div>
       </aside>
     </section>
 
-    <section id="about" class="section" aria-labelledby="about-title">
-      <p class="section-kicker">01 / ABOUT</p>
-      <h2 id="about-title">공개할 것과 지킬 것을 구분합니다.</h2>
-      <div class="privacy-grid">
+    <section id="scope" class="section" aria-labelledby="scope-title">
+      <p class="section-kicker">01 / PUBLIC SCOPE</p>
+      <h2 id="scope-title">공개할 것과 공개하지 않을 것을 먼저 정했습니다.</h2>
+      <div class="scope-grid">
         <article class="panel">
-          <h3>OPEN / 공개하는 정보</h3>
+          <h3>공개하는 정보</h3>
           <ul class="clean-list">
-            <li><b>01</b><span><strong>목표</strong>AI 인프라 엔지니어로 성장하기</span></li>
-            <li><b>02</b><span><strong>경험</strong>ITS 현장 유지보수 및 장애 대응</span></li>
-            <li><b>03</b><span><strong>학습</strong>Linux · Git · Docker · Kubernetes · AWS</span></li>
+            <li><strong>목표</strong><span>AI 인프라 엔지니어로 성장하기</span></li>
+            <li><strong>경험</strong><span>ITS 현장 유지보수와 장애 원인 추적 경험</span></li>
+            <li><strong>학습</strong><span>Linux·Git/Python·Docker·Kubernetes·AWS·LLM Serving</span></li>
+            <li><strong>근거</strong><span>공개 GitHub 저장소와 과제 결과물</span></li>
           </ul>
         </article>
-        <article class="panel private">
-          <h3>PRIVATE / 공개하지 않는 정보</h3>
+        <article class="panel private-panel">
+          <h3>공개하지 않는 정보</h3>
           <ul class="clean-list">
-            <li><b>01</b><span><strong>연락처</strong>개인 전화번호는 공개하지 않습니다.</span></li>
-            <li><b>02</b><span><strong>위치</strong>상세 주소는 공개하지 않습니다.</span></li>
-            <li><b>03</b><span><strong>보안</strong>계정·비밀번호·토큰·API 키는 공개하지 않습니다.</span></li>
+            <li><strong>연락처</strong><span>전화번호·개인 이메일은 싣지 않습니다.</span></li>
+            <li><strong>정확한 위치</strong><span>집 주소나 실시간 위치는 공개하지 않습니다.</span></li>
+            <li><strong>계정 정보</strong><span>비밀번호·토큰·API 키·인증값은 절대 넣지 않습니다.</span></li>
+            <li><strong>불필요한 민감정보</strong><span>과제 목적과 무관한 개인 정보는 제외합니다.</span></li>
           </ul>
         </article>
       </div>
     </section>
 
     <section id="evidence" class="section" aria-labelledby="evidence-title">
-      <p class="section-kicker">02 / EVIDENCE</p>
-      <h2 id="evidence-title">저를 설명하는 세 가지 근거</h2>
-      <p class="section-desc">카드를 클릭하거나 Tab으로 이동한 뒤 Enter/Space를 눌러 상세 내용을 확인할 수 있습니다.</p>
+      <p class="section-kicker">02 / STRENGTHS &amp; EVIDENCE</p>
+      <h2 id="evidence-title">저를 설명하는 세 가지 강점과 실제 근거</h2>
+      <p class="section-desc">각 카드는 마우스로 클릭하거나, Tab으로 이동한 뒤 Enter/Space를 눌러 펼칠 수 있습니다.</p>
 
       <div class="evidence-grid">
         <article class="evidence-card">
           <button class="card-trigger" type="button" aria-expanded="false" aria-controls="detail-1">
             <span class="card-number">01</span>
-            <span class="card-heading">현장 문제 해결</span>
-            <span class="card-summary">장애가 생기면 추측보다 확인부터 합니다.</span>
-            <span class="card-more">근거 펼치기 <span aria-hidden="true">+</span></span>
+            <span class="card-heading">원인을 좁혀가는 문제 해결</span>
+            <span class="card-summary">현장 장비 문제를 감으로 넘기지 않고 설정과 상태를 대조합니다.</span>
+            <span class="card-more">상황·행동·결과 보기 <span aria-hidden="true">+</span></span>
           </button>
           <div id="detail-1" class="card-detail" hidden>
-            <p><strong>상황</strong> ITS 유지보수 업무에서 CCTV·VMS·VDS 등 현장 장비 장애에 대응해야 했습니다.</p>
-            <p><strong>행동</strong> 현장에 출동해 전원, 연결 상태, 장비 동작을 순서대로 확인하며 원인을 좁혔습니다.</p>
-            <p><strong>결과</strong> 장애 원인을 파악해 복구하고 점검 내용을 보고 형태로 정리하는 경험을 쌓았습니다.</p>
+            <p><strong>상황</strong> ITS 유지보수 현장에서 카메라 연결 문제가 발생했고, 여러 장비의 네트워크 설정을 확인해야 했습니다.</p>
+            <p><strong>행동</strong> 장비별 IP 설정을 대조하며 같은 주소가 사용된 장비가 있는지 확인해 원인을 단계적으로 좁혔습니다.</p>
+            <p><strong>결과</strong> 문제의 원인이 IP 충돌이라는 점을 확인해 다음 조치와 보고를 구체화할 수 있었습니다.</p>
           </div>
         </article>
 
         <article class="evidence-card">
           <button class="card-trigger" type="button" aria-expanded="false" aria-controls="detail-2">
             <span class="card-number">02</span>
-            <span class="card-heading">끝까지 파고드는 학습</span>
-            <span class="card-summary">모르는 것은 직접 실행하며 이해합니다.</span>
-            <span class="card-more">근거 펼치기 <span aria-hidden="true">+</span></span>
+            <span class="card-heading">패턴 분석과 팀 커뮤니케이션</span>
+            <span class="card-summary">복잡한 상황을 패턴으로 나누고 사람들과 맞춰가는 과정을 좋아합니다.</span>
+            <span class="card-more">상황·행동·결과 보기 <span aria-hidden="true">+</span></span>
           </button>
           <div id="detail-2" class="card-detail" hidden>
-            <p><strong>상황</strong> 현장 경험을 클라우드와 AI 서비스 운영 역량으로 확장할 필요를 느꼈습니다.</p>
-            <p><strong>행동</strong> Linux부터 Python/Git, Docker, Kubernetes, AWS, GPU·LLM 서빙까지 단계별 학습 계획을 세웠습니다.</p>
-            <p><strong>결과</strong> 단순 강의 시청이 아니라 명령어 실행, 오류 해결, 기록을 남기는 실습 중심 학습을 이어가고 있습니다.</p>
+            <p><strong>상황</strong> 블레이드 &amp; 소울 NEO 레이드에서 여러 명의 팀원과 반복해서 패턴을 맞춰야 했습니다.</p>
+            <p><strong>행동</strong> 실패 구간의 패턴을 분석하고 팀원들과 다음 행동을 공유하면서 한 단계씩 공략을 맞췄습니다.</p>
+            <p><strong>결과</strong> 팀이 같은 목표와 기준을 공유하면서 구간을 차근차근 넘기고 클리어까지 이어갈 수 있었습니다.</p>
           </div>
         </article>
 
         <article class="evidence-card">
           <button class="card-trigger" type="button" aria-expanded="false" aria-controls="detail-3">
             <span class="card-number">03</span>
-            <span class="card-heading">운영 관점의 습관</span>
-            <span class="card-summary">“되었다”보다 “왜 되는가”를 확인합니다.</span>
-            <span class="card-more">근거 펼치기 <span aria-hidden="true">+</span></span>
+            <span class="card-heading">배운 것을 결과물로 남기기</span>
+            <span class="card-summary">학습 내용을 공개 가능한 코드와 기록으로 바꾸는 습관을 만들고 있습니다.</span>
+            <span class="card-more">상황·행동·결과 보기 <span aria-hidden="true">+</span></span>
           </button>
           <div id="detail-3" class="card-detail" hidden>
-            <p><strong>상황</strong> 유지보수에서는 같은 증상도 원인이 다를 수 있어 재현과 확인이 중요했습니다.</p>
-            <p><strong>행동</strong> 증상과 확인 순서를 나누고, 변경 전후 상태와 결과를 기록하는 방식으로 접근했습니다.</p>
-            <p><strong>결과</strong> AI 인프라 학습에서도 배포·모니터링·장애 원인 확인을 중요하게 보는 운영 관점을 갖게 됐습니다.</p>
+            <p><strong>상황</strong> AI 인프라 분야로 전환하려면 공부했다는 말보다 실제로 확인 가능한 결과물이 필요했습니다.</p>
+            <p><strong>행동</strong> 16주 학습 순서를 정하고, 작은 과제도 GitHub에 코드와 수정 이유를 남기는 방식으로 진행하고 있습니다.</p>
+            <p><strong>결과</strong> 현재 이 한 페이지 소개 사이트와 전체 소스를 공개 저장소에서 누구나 확인할 수 있게 만들었습니다.</p>
+            <p><a class="inline-link" href="https://github.com/eunsu7997/eunsu-ai-infra-profile">공개 근거: 이 페이지의 GitHub 저장소 →</a></p>
           </div>
         </article>
       </div>
     </section>
 
-    <section id="roadmap" class="section" aria-labelledby="roadmap-title">
-      <p class="section-kicker">03 / ROADMAP</p>
-      <h2 id="roadmap-title">현재의 방향</h2>
-      <p class="section-desc">현장 장애 대응 경험을 소프트웨어·클라우드·AI 서비스 운영 능력으로 연결하고 있습니다.</p>
-      <ol class="roadmap">
+    <section id="direction" class="section" aria-labelledby="direction-title">
+      <p class="section-kicker">03 / DIRECTION</p>
+      <h2 id="direction-title">현장 문제 해결 경험을 AI 서비스 운영 역량으로 확장합니다.</h2>
+      <ol class="roadmap" aria-label="현재 학습 순서">
         <li><span>01</span><strong>Linux</strong><small>시스템 기본기</small></li>
-        <li><span>02</span><strong>Python / Git</strong><small>자동화와 기록</small></li>
+        <li><span>02</span><strong>Git / Python</strong><small>기록과 자동화</small></li>
         <li><span>03</span><strong>Docker</strong><small>컨테이너</small></li>
         <li><span>04</span><strong>Kubernetes</strong><small>오케스트레이션</small></li>
         <li><span>05</span><strong>AWS</strong><small>클라우드</small></li>
@@ -144,15 +151,15 @@
 
     <section class="closing section" aria-labelledby="closing-title">
       <p class="section-kicker">04 / NEXT</p>
-      <h2 id="closing-title">현장을 아는 AI 인프라 엔지니어로.</h2>
-      <p>작동하는 시스템을 만들고, 문제가 생겼을 때 원인을 찾아 다시 안정화할 수 있는 엔지니어를 목표로 합니다.</p>
+      <h2 id="closing-title">작동 여부를 직접 확인하는 엔지니어를 목표로 합니다.</h2>
+      <p>배포하고 끝내지 않고, 화면·상호작용·오류 상태를 다시 확인하고 수정 기록을 남기는 습관을 계속 만들겠습니다.</p>
       <a class="button primary" href="#home">처음으로 돌아가기 ↑</a>
     </section>
   </main>
 
   <footer>
-    <p>Designed &amp; built for the “나를 소개하는 한 페이지” assignment.</p>
-    <p>© 2026 Eunsu. No secrets, tokens or personal contact data included.</p>
+    <p>“나를 소개하는 한 페이지” 과제용 공개 결과물</p>
+    <p>개인 연락처·정확한 위치·비밀번호·토큰·API 키를 포함하지 않습니다.</p>
   </footer>
 </body>
 </html>
