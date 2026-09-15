@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="20초 동안 서버 과부하를 막는 브라우저 미니게임 Server Shield" />
+  <title>Server Shield — 20초 과부하 방어</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app-shell" aria-labelledby="game-title">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">ALEPH T02 · BROWSER MINI GAME</p>
+        <h1 id="game-title">SERVER <span>SHIELD</span></h1>
+      </div>
+      <div class="top-actions" aria-label="게임 설정">
+        <button id="motion-toggle" class="ghost-btn" type="button" aria-pressed="false">효과 줄이기: OFF</button>
+        <button id="pause-btn" class="ghost-btn" type="button" disabled>일시정지 (P)</button>
+      </div>
+    </header>
+
+    <section class="game-grid">
+      <section class="panel game-panel" aria-label="게임 영역">
+        <div class="status-row">
+          <div class="status-chip">
+            <span class="label">상태</span>
+            <strong id="status-text">대기</strong>
+          </div>
+          <div class="status-chip">
+            <span class="label">남은 시간</span>
+            <strong><span id="time-text">20.0</span>s</strong>
+          </div>
+          <div class="status-chip">
+            <span class="label">냉각 입력</span>
+            <strong id="action-count">0</strong>
+          </div>
+        </div>
+
+        <div id="reactor" class="reactor" aria-live="polite">
+          <div class="reactor-ring ring-a"></div>
+          <div class="reactor-ring ring-b"></div>
+          <div class="reactor-core">
+            <span class="core-label">CPU LOAD</span>
+            <strong id="load-text">42%</strong>
+          </div>
+          <div id="particle-layer" class="particle-layer" aria-hidden="true"></div>
+        </div>
+
+        <div class="meter-wrap" aria-label="현재 서버 부하">
+          <div class="meter-head">
+            <span>안정</span>
+            <span>위험 100%</span>
+          </div>
+          <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="42" aria-label="CPU 부하">
+            <div id="load-bar" class="meter-fill"></div>
+          </div>
+        </div>
+
+        <p id="event-text" class="event-text">시작하면 서버 부하가 계속 올라갑니다.</p>
+
+        <div class="primary-controls">
+          <button id="cool-btn" class="cool-btn" type="button" disabled>
+            <span>COOL</span>
+            <small>SPACE / 클릭</small>
+          </button>
+          <button id="start-btn" class="start-btn" type="button">게임 시작</button>
+        </div>
+
+        <div id="result-card" class="result-card" hidden>
+          <p id="result-kicker" class="result-kicker">ROUND COMPLETE</p>
+          <h2 id="result-title">서버 안정화 성공</h2>
+          <p id="result-desc">20초 동안 과부하를 막았습니다.</p>
+          <button id="restart-btn" class="restart-btn" type="button">다시 시작 (R)</button>
+        </div>
+      </section>
+
+      <aside class="side-stack" aria-label="게임 규칙과 기록">
+        <section class="panel info-panel">
+          <h2>30초 안에 끝나는 핵심 규칙</h2>
+          <ol>
+            <li><b>20초</b> 동안 CPU 부하가 100%에 닿지 않게 버팁니다.</li>
+            <li><b>SPACE 또는 COOL 버튼</b> 한 번마다 부하가 9% 내려갑니다.</li>
+            <li>중간에 장애 스파이크가 발생합니다. 100%면 실패, 20초 생존이면 성공입니다.</li>
+          </ol>
+          <div class="key-grid" aria-label="핵심 조작">
+            <div><kbd>SPACE</kbd><span>냉각</span></div>
+            <div><kbd>P</kbd><span>일시정지/재개</span></div>
+            <div><kbd>R</kbd><span>다시 시작</span></div>
+          </div>
+        </section>
+
+        <section class="panel record-panel">
+          <div class="section-head">
+            <h2>보존 기록</h2>
+            <span class="tiny-note">재접속 뒤 유지</span>
+          </div>
+          <div class="record-grid">
+            <div><span>성공</span><strong id="wins-text">0</strong></div>
+            <div><span>최장 생존</span><strong><span id="best-time-text">0.0</span>s</strong></div>
+          </div>
+          <p class="save-note">현재 판의 시간·부하·입력 횟수는 새 게임에서 초기화되고, 위 기록만 브라우저에 보존됩니다. 빈 값이나 손상된 저장값은 안전한 기본값으로 복구합니다.</p>
+        </section>
+
+        <section class="panel difficulty-panel">
+          <div class="section-head">
+            <h2>최종 난이도</h2>
+            <span class="difficulty-badge">NORMAL</span>
+          </div>
+          <p><b>부하 상승값 7.0%/초</b>만 조정해 비교한 뒤 선택한 값입니다.</p>
+          <p class="tiny-note">비교 기록과 선택 근거는 공개 소스의 <code>T02_EVIDENCE.md</code>에 남깁니다.</p>
+        </section>
+      </aside>
+    </section>
+
+    <footer>
+      <span>개인 연락처·정확한 위치·비밀번호·토큰·API 키를 포함하지 않습니다.</span>
+      <a href="https://github.com/eunsu7997/eunsu-ai-infra-profile/tree/main/t02-mini-game" target="_blank" rel="noopener noreferrer">공개 소스 ↗</a>
+    </footer>
+  </main>
+
+  <script src="./script.js"></script>
+</body>
+</html>
