@@ -32,7 +32,7 @@
   };
 
   const ROUND_SECONDS = 28;
-  const ATTACK_INTERVAL_MS = 650;
+  const ATTACK_INTERVAL_MS = 700;
   const STORAGE_KEY = 'raidzero:v1';
   const PLAYER_RADIUS = 12;
   const PLAYER_SPEED = 220;
@@ -131,6 +131,7 @@
     state.mode = success ? 'success' : 'fail';
     const survived = Math.min(ROUND_SECONDS, state.elapsed);
 
+    // 성공 순간 기존 위험 장판을 지워 결과 화면 뒤가 지저분하지 않게 한다.
     if (success){
       state.hazards.length = 0;
       state.dashFx = null;
@@ -287,6 +288,7 @@
       return;
     }
 
+    // PHASE 3: 기존보다 패턴을 더 자주 겹쳐 광폭화 체감을 키운다.
     if (choice < .25){
       addBeam(Math.random()*Math.PI,60,.50);
       addBeam(Math.random()*Math.PI,60,.70);
@@ -526,6 +528,7 @@
     ctx.lineTo(fx.toX,fx.toY);
     ctx.stroke();
 
+    // 진행 방향을 따라 잔상 5개
     for(let i=0;i<5;i++){
       const q=(i+1)/6;
       const x=fx.fromX+(fx.toX-fx.fromX)*q;
@@ -537,6 +540,7 @@
       ctx.fill();
     }
 
+    // 도착점 충격파
     ctx.globalAlpha=fade;
     ctx.strokeStyle='#d8fbff';
     ctx.lineWidth=3;
