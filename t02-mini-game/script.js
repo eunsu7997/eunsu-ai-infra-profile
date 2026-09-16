@@ -314,7 +314,7 @@
   });
   window.addEventListener('keyup',(e)=>keyDirection(e.code,false));
   window.addEventListener('blur',()=>{if(state.mode==='playing'){pausedByBlur=true;togglePause(true);}});
-  window.addEventListener('focus',()=>{ if(pausedByBlur){pausedByBlur=false; /* 상태 유지, 사용자가 P로 직접 재개 */} });
+  window.addEventListener('focus',()=>{ if(pausedByBlur){pausedByBlur=false;togglePause(false);} });
   window.addEventListener('resize',()=>syncUi());
 
   UI.startBtn.addEventListener('click',startRound);UI.restartBtn.addEventListener('click',restartRound);
