@@ -16,7 +16,8 @@
   };
 
   const ROUND_SECONDS = 28;
-  const ATTACK_INTERVAL_MS = 740;
+  // 게임성 조정: 다른 난이도 값은 그대로 두고 기본 패턴 간격만 740ms -> 650ms로 변경.
+  const ATTACK_INTERVAL_MS = 650;
   const STORAGE_KEY = 'raidzero:v1';
   const PLAYER_RADIUS = 12;
   const PLAYER_SPEED = 220;
@@ -39,7 +40,7 @@
     return {
       mode:'ready', elapsed:0, timeLeft:ROUND_SECONDS, phase:1, hp:5, score:0, combo:0, dodges:0,
       dashCooldown:0, invuln:0, player:{x:480,y:385}, hazards:[], particles:[], screenShake:0,
-      lastPatternName:'-', roundStartedAt:0, result:null
+      dashFx:null, lastPatternName:'-', roundStartedAt:0, result:null
     };
   }
 
@@ -117,9 +118,7 @@
     if (!effectsReduced) burst(canvas.width/2, canvas.height/2, success ? 54 : 28, success ? '#6ef0b2' : '#ff5369');
     UI.resultKicker.textContent = success ? 'RAID CLEAR' : 'TRAINING FAILED';
     UI.resultTitle.textContent = success ? 'NULL CORE 생존 성공' : '레이드 실패';
-    UI.resultSummary.textContent = success
-      ? '3개 페이즈를 모두 버텼습니다.'
-      : `${survived.toFixed(1)}초 생존 후 HP가 0이 되었습니다.`;
+    UI.resultSummary.textContent = success ? '3개 페이즈를 모두 버텼습니다.' : `${survived.toFixed(1)}초 생존 후 HP가 0이 되었습니다.`;
     UI.gradeText.textContent = grade;
     UI.scoreResult.textContent = Math.floor(state.score).toLocaleString();
     UI.dodgeResult.textContent = String(state.dodges);
@@ -147,12 +146,24 @@
     const dir = movementVector();
     let dx = dir.x, dy = dir.y;
     if (dx === 0 && dy === 0) dy = -1;
-    state.player.x = clamp(state.player.x + dx * DASH_DISTANCE, 22, canvas.width-22);
-    state.player.y = clamp(state.player.y + dy * DASH_DISTANCE, 18, canvas.height-72);
+
+    const fromX = state.player.x;
+    const fromY = state.player.y;
+    const toX = clamp(fromX + dx * DASH_DISTANCE, 22, canvas.width-22);
+    const toY = clamp(fromY + dy * DASH_DISTANCE, 18, canvas.height-72);
+
+    state.player.x = toX;
+    state.player.y = toY;
     state.dashCooldown = DASH_COOLDOWN;
     state.invuln = Math.max(state.invuln, .22);
     state.score += 18;
-    if (!effectsReduced) burst(state.player.x,state.player.y,16,'#57e7ff');
+
+    if (!effectsReduced){
+      state.dashFx = { fromX, fromY, toX, toY, age:0, duration:.24 };
+      // 시작점과 도착점에서 입자가 터지며 이동 잔상이 이어진다.
+      burst(fromX,fromY,8,'#57e7ff');
+      burst(toX,toY,18,'#a7f5ff');
+    }
   }
 
   function movementVector(){
@@ -230,7 +241,7 @@
         aimedCircle();
         addCircle(
           clamp(state.player.x + rand(-95,95),70,canvas.width-70),
-          clamp(state.player.y + rand(-95,95),105,canvas.height-95),
+          clamp(state.player.y + rand(-95,95),70,canvas.height-95),
           52,.70
         );
         state.lastPatternName='2연속 추적 장판';
@@ -276,6 +287,10 @@
 
     state.dashCooldown = Math.max(0,state.dashCooldown-dt);
     state.invuln = Math.max(0,state.invuln-dt);
+    if (state.dashFx){
+      state.dashFx.age += dt;
+      if (state.dashFx.age >= state.dashFx.duration) state.dashFx = null;
+    }
 
     const mv=movementVector();
     state.player.x=clamp(state.player.x+mv.x*PLAYER_SPEED*dt,22,canvas.width-22);
@@ -318,7 +333,10 @@
     state.hazards=state.hazards.filter(h=>h.t<h.warning+h.active+.28);
     state.particles=state.particles.filter(p=>(p.life-=dt)>0);
     for(const p of state.particles){
-      p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.96;p.vy*=.96;
+      p.x+=p.vx*dt;
+      p.y+=p.vy*dt;
+      p.vx*=.96;
+      p.vy*=.96;
     }
     state.screenShake=Math.max(0,state.screenShake-dt*38);
     state.score += dt*10;
@@ -351,8 +369,7 @@
     }
 
     if(h.type==='cross'){
-      return Math.abs(px-h.x)<=h.width/2+PLAYER_RADIUS*.55 ||
-             Math.abs(py-h.y)<=h.width/2+PLAYER_RADIUS*.55;
+      return Math.abs(px-h.x)<=h.width/2+PLAYER_RADIUS*.55 || Math.abs(py-h.y)<=h.width/2+PLAYER_RADIUS*.55;
     }
     return false;
   }
@@ -360,23 +377,23 @@
   function burst(x,y,count,color){
     if(effectsReduced) return;
     for(let i=0;i<count;i++){
-      const a=Math.random()*Math.PI*2,s=rand(55,190);
-      state.particles.push({
-        x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,
-        life:rand(.22,.55),max:.55,color
-      });
+      const a=Math.random()*Math.PI*2;
+      const s=rand(55,190);
+      state.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.22,.55),max:.55,color});
     }
   }
 
   function render(){
     const shake = effectsReduced?0:state.screenShake;
-    const sx=shake?rand(-shake,shake):0, sy=shake?rand(-shake,shake):0;
+    const sx=shake?rand(-shake,shake):0;
+    const sy=shake?rand(-shake,shake):0;
     ctx.save();
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.translate(sx,sy);
     drawArena();
     for(const h of state.hazards) drawHazard(h);
     drawBoss();
+    drawDashFx();
     drawPlayer();
     drawParticles();
     ctx.restore();
@@ -420,6 +437,54 @@
     ctx.restore();
   }
 
+  function drawDashFx(){
+    if (effectsReduced || !state.dashFx) return;
+    const fx = state.dashFx;
+    const p = clamp(fx.age/fx.duration,0,1);
+    const fade = 1-p;
+
+    ctx.save();
+    ctx.globalCompositeOperation='lighter';
+
+    // 순간 이동 방향을 보여주는 빛의 궤적.
+    const grad=ctx.createLinearGradient(fx.fromX,fx.fromY,fx.toX,fx.toY);
+    grad.addColorStop(0,'rgba(87,231,255,0)');
+    grad.addColorStop(.35,`rgba(87,231,255,${.45*fade})`);
+    grad.addColorStop(1,`rgba(216,251,255,${.9*fade})`);
+    ctx.strokeStyle=grad;
+    ctx.lineWidth=8+10*fade;
+    ctx.lineCap='round';
+    ctx.shadowBlur=24;
+    ctx.shadowColor='#57e7ff';
+    ctx.beginPath();
+    ctx.moveTo(fx.fromX,fx.fromY);
+    ctx.lineTo(fx.toX,fx.toY);
+    ctx.stroke();
+
+    // 이동 경로에 잔상 5개.
+    for(let i=1;i<=5;i++){
+      const t=i/6;
+      const x=fx.fromX+(fx.toX-fx.fromX)*t;
+      const y=fx.fromY+(fx.toY-fx.fromY)*t;
+      ctx.globalAlpha=(.10+i*.055)*fade;
+      ctx.fillStyle='#baf8ff';
+      ctx.beginPath();
+      ctx.arc(x,y,PLAYER_RADIUS*(.55+t*.28),0,Math.PI*2);
+      ctx.fill();
+    }
+
+    // 도착점에서 퍼지는 원형 충격파.
+    ctx.globalAlpha=.85*fade;
+    ctx.strokeStyle='#d8fbff';
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.arc(fx.toX,fx.toY,PLAYER_RADIUS+4+p*32,0,Math.PI*2);
+    ctx.stroke();
+
+    ctx.restore();
+    ctx.globalAlpha=1;
+  }
+
   function drawPlayer(){
     if(!effectsReduced && state.invuln>0 && Math.floor(performance.now()/70)%2===0) return;
     const {x,y}=state.player;
@@ -428,7 +493,9 @@
     ctx.shadowColor='#57e7ff';
     ctx.fillStyle='#d8fbff';
     ctx.beginPath();ctx.arc(x,y,PLAYER_RADIUS,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#57e7ff';ctx.lineWidth=3;ctx.stroke();
+    ctx.strokeStyle='#57e7ff';
+    ctx.lineWidth=3;
+    ctx.stroke();
     ctx.restore();
   }
 
@@ -462,9 +529,9 @@
       ctx.fillRect(-canvas.width,-h.width/2,canvas.width*2,h.width);
       ctx.strokeRect(-canvas.width,-h.width/2,canvas.width*2,h.width);
     } else if(h.type==='cross'){
-      ctx.fillRect(h.x-h.width/2,84,h.width,canvas.height-150);
+      ctx.fillRect(h.x-h.width/2,18,h.width,canvas.height-90);
       ctx.fillRect(18,h.y-h.width/2,canvas.width-36,h.width);
-      ctx.strokeRect(h.x-h.width/2,84,h.width,canvas.height-150);
+      ctx.strokeRect(h.x-h.width/2,18,h.width,canvas.height-90);
       ctx.strokeRect(18,h.y-h.width/2,canvas.width-36,h.width);
     }
     ctx.restore();
@@ -492,6 +559,13 @@
     UI.winsText.textContent=records.wins;
     UI.bestScoreText.textContent=records.bestScore.toLocaleString();
     UI.bestTimeText.textContent=records.bestTime.toFixed(1);
+  }
+
+  function syncDifficultyCopy(){
+    const value=document.querySelector('.difficulty-card p b');
+    if(value) value.textContent='패턴 간격 0.65초';
+    const note=document.querySelector('.difficulty-card .mini-copy');
+    if(note) note.textContent='현재 체감 난이도 조정 중입니다. 최종 확정 뒤 전·후 10회씩 다시 비교해 증거 기록을 갱신합니다.';
   }
 
   function frame(ts){
@@ -538,6 +612,7 @@
     if(effectsReduced){
       state.particles.length=0;
       state.screenShake=0;
+      state.dashFx=null;
     }
   });
 
@@ -556,6 +631,7 @@
     config:{ROUND_SECONDS,ATTACK_INTERVAL_MS,STORAGE_KEY}
   };
 
+  syncDifficultyCopy();
   resetRound();
   rafId=requestAnimationFrame(frame);
 })();
