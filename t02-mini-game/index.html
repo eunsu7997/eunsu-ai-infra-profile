@@ -2,113 +2,117 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="20초 동안 서버 과부하를 막는 브라우저 미니게임 Server Shield" />
-  <title>Server Shield — 20초 과부하 방어</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="RAID//ZERO - 28초 동안 보스 장판을 피하는 브라우저 미니게임" />
+  <title>RAID//ZERO — Pattern Survival</title>
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <main class="app-shell" aria-labelledby="game-title">
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">ALEPH T02 · BROWSER MINI GAME</p>
-        <h1 id="game-title">SERVER <span>SHIELD</span></h1>
+  <main class="shell" aria-labelledby="title">
+    <header class="hud-top">
+      <div class="brand-block">
+        <p class="eyebrow">PATTERN SURVIVAL</p>
+        <h1 id="title">RAID<span>//</span>ZERO</h1>
       </div>
-      <div class="top-actions" aria-label="게임 설정">
-        <button id="motion-toggle" class="ghost-btn" type="button" aria-pressed="false">효과 줄이기: OFF</button>
-        <button id="pause-btn" class="ghost-btn" type="button" disabled>일시정지 (P)</button>
+
+      <div class="boss-strip" aria-label="보스 상태">
+        <div class="boss-copy"><span>NULL CORE</span><b id="phaseText">PHASE 1</b></div>
+        <div class="boss-bar"><div id="bossBar" class="boss-bar-fill"></div></div>
+      </div>
+
+      <div class="time-card" aria-label="남은 시간">
+        <span>TIME LEFT</span>
+        <strong id="timeText">28.0</strong>
       </div>
     </header>
 
-    <section class="game-grid">
-      <section class="panel game-panel" aria-label="게임 영역">
-        <div class="status-row">
-          <div class="status-chip">
-            <span class="label">상태</span>
-            <strong id="status-text">대기</strong>
-          </div>
-          <div class="status-chip">
-            <span class="label">남은 시간</span>
-            <strong><span id="time-text">20.0</span>s</strong>
-          </div>
-          <div class="status-chip">
-            <span class="label">냉각 입력</span>
-            <strong id="action-count">0</strong>
+    <section class="game-layout">
+      <section class="game-card" aria-label="RAID ZERO 게임 화면">
+        <canvas id="gameCanvas" width="960" height="540" aria-label="보스 장판을 피하는 게임 영역"></canvas>
+
+        <div id="startOverlay" class="overlay show">
+          <div class="modal-card">
+            <p class="eyebrow">BOSS TRAINING SIMULATION</p>
+            <h2>RAID<span>//</span>ZERO</h2>
+            <p class="lead">28초 동안 보스의 장판을 피해서 생존하세요.</p>
+            <p class="controls-line"><b>WASD / 방향키</b> 이동 · <b>SPACE</b> 대시 · <b>P</b> 일시정지</p>
+            <div class="phase-grid">
+              <div><b>PHASE 1</b><span>원형 장판 + 추적탄</span></div>
+              <div><b>PHASE 2</b><span>레이저 + 도넛 장판</span></div>
+              <div><b>PHASE 3</b><span>복합 패턴 + 광폭화</span></div>
+            </div>
+            <button id="startBtn" class="primary-btn" type="button">훈련 시작</button>
           </div>
         </div>
 
-        <div id="reactor" class="reactor" aria-live="polite">
-          <div class="reactor-ring ring-a"></div>
-          <div class="reactor-ring ring-b"></div>
-          <div class="reactor-core">
-            <span class="core-label">CPU LOAD</span>
-            <strong id="load-text">42%</strong>
-          </div>
-          <div id="particle-layer" class="particle-layer" aria-hidden="true"></div>
+        <div id="pauseOverlay" class="overlay" aria-hidden="true">
+          <div class="modal-card compact"><p class="eyebrow">PAUSED</p><h2>일시정지</h2><p>P를 눌러 계속합니다.</p></div>
         </div>
 
-        <div class="meter-wrap" aria-label="현재 서버 부하">
-          <div class="meter-head">
-            <span>안정</span>
-            <span>위험 100%</span>
-          </div>
-          <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="42" aria-label="CPU 부하">
-            <div id="load-bar" class="meter-fill"></div>
+        <div id="resultOverlay" class="overlay" aria-hidden="true">
+          <div class="modal-card result-card">
+            <p id="resultKicker" class="eyebrow">ROUND COMPLETE</p>
+            <h2 id="resultTitle">생존 성공</h2>
+            <p id="resultSummary" class="lead"></p>
+            <div class="result-stats">
+              <div><span>등급</span><strong id="gradeText">S</strong></div>
+              <div><span>점수</span><strong id="scoreResult">0</strong></div>
+              <div><span>회피</span><strong id="dodgeResult">0</strong></div>
+            </div>
+            <button id="restartBtn" class="primary-btn" type="button">다시 시작 (R)</button>
           </div>
         </div>
 
-        <p id="event-text" class="event-text">시작하면 서버 부하가 계속 올라갑니다.</p>
-
-        <div class="primary-controls">
-          <button id="cool-btn" class="cool-btn" type="button" disabled>
-            <span>COOL</span>
-            <small>SPACE / 클릭</small>
-          </button>
-          <button id="start-btn" class="start-btn" type="button">게임 시작</button>
-        </div>
-
-        <div id="result-card" class="result-card" hidden>
-          <p id="result-kicker" class="result-kicker">ROUND COMPLETE</p>
-          <h2 id="result-title">서버 안정화 성공</h2>
-          <p id="result-desc">20초 동안 과부하를 막았습니다.</p>
-          <button id="restart-btn" class="restart-btn" type="button">다시 시작 (R)</button>
+        <div class="game-hud" aria-live="polite">
+          <div class="hp-block"><span>HP</span><div id="hearts" class="hearts">♥ ♥ ♥ ♥ ♥</div></div>
+          <div class="stat"><span>SCORE</span><strong id="scoreText">0</strong></div>
+          <div class="stat"><span>COMBO</span><strong id="comboText">x0</strong></div>
+          <div class="stat"><span>DASH</span><strong id="dashText">READY</strong></div>
+          <div class="stat"><span>STATE</span><strong id="stateText">READY</strong></div>
         </div>
       </section>
 
-      <aside class="side-stack" aria-label="게임 규칙과 기록">
-        <section class="panel info-panel">
-          <h2>30초 안에 끝나는 핵심 규칙</h2>
+      <aside class="side-panel" aria-label="게임 규칙과 기록">
+        <section class="info-card rules-card">
+          <div class="card-head"><h2>핵심 규칙</h2><span>한 판 ≤ 28초</span></div>
           <ol>
-            <li><b>20초</b> 동안 CPU 부하가 100%에 닿지 않게 버팁니다.</li>
-            <li><b>SPACE 또는 COOL 버튼</b> 한 번마다 부하가 9% 내려갑니다.</li>
-            <li>중간에 장애 스파이크가 발생합니다. 100%면 실패, 20초 생존이면 성공입니다.</li>
+            <li>빨간 예고 구역이 터지기 전에 안전 지대로 이동합니다.</li>
+            <li>피격 시 HP 1 감소. HP 0이면 즉시 실패합니다.</li>
+            <li>28초 생존하면 성공. 오래 버티고 안 맞을수록 등급이 올라갑니다.</li>
           </ol>
-          <div class="key-grid" aria-label="핵심 조작">
-            <div><kbd>SPACE</kbd><span>냉각</span></div>
-            <div><kbd>P</kbd><span>일시정지/재개</span></div>
-            <div><kbd>R</kbd><span>다시 시작</span></div>
+        </section>
+
+        <section class="info-card controls-card">
+          <div class="card-head"><h2>핵심 조작</h2><span>항상 표시</span></div>
+          <div class="control-grid">
+            <div><kbd>WASD</kbd><span>이동</span></div>
+            <div><kbd>↑↓←→</kbd><span>이동</span></div>
+            <div><kbd>SPACE</kbd><span>대시</span></div>
+            <div><kbd>P</kbd><span>일시정지</span></div>
+            <div><kbd>R</kbd><span>재시작</span></div>
           </div>
         </section>
 
-        <section class="panel record-panel">
-          <div class="section-head">
-            <h2>보존 기록</h2>
-            <span class="tiny-note">재접속 뒤 유지</span>
-          </div>
+        <section class="info-card record-card">
+          <div class="card-head"><h2>보존 기록</h2><span>localStorage</span></div>
           <div class="record-grid">
-            <div><span>성공</span><strong id="wins-text">0</strong></div>
-            <div><span>최장 생존</span><strong><span id="best-time-text">0.0</span>s</strong></div>
+            <div><span>클리어</span><strong id="winsText">0</strong></div>
+            <div><span>최고 점수</span><strong id="bestScoreText">0</strong></div>
+            <div><span>최장 생존</span><strong><span id="bestTimeText">0.0</span>s</strong></div>
           </div>
-          <p class="save-note">현재 판의 시간·부하·입력 횟수는 새 게임에서 초기화되고, 위 기록만 브라우저에 보존됩니다. 빈 값이나 손상된 저장값은 안전한 기본값으로 복구합니다.</p>
+          <p class="mini-copy">빈 저장값이나 손상된 저장값은 게임을 멈추지 않고 안전한 기본값으로 복구합니다.</p>
         </section>
 
-        <section class="panel difficulty-panel">
-          <div class="section-head">
-            <h2>최종 난이도</h2>
-            <span class="difficulty-badge">NORMAL</span>
-          </div>
-          <p><b>부하 상승값 7.0%/초</b>만 조정해 비교한 뒤 선택한 값입니다.</p>
-          <p class="tiny-note">비교 기록과 선택 근거는 공개 소스의 <code>T02_EVIDENCE.md</code>에 남깁니다.</p>
+        <section class="info-card effect-card">
+          <div class="card-head"><h2>효과 설정</h2><span>즉시 적용</span></div>
+          <button id="effectToggle" class="secondary-btn" type="button" aria-pressed="false">파티클/흔들림 줄이기: OFF</button>
+          <p class="mini-copy">대시·피격·클리어 때만 파티클이 발생합니다. 줄이기를 켜면 기존 파티클도 즉시 사라집니다.</p>
+        </section>
+
+        <section class="info-card difficulty-card">
+          <div class="card-head"><h2>난이도</h2><span class="badge">NORMAL</span></div>
+          <p><b>패턴 간격 0.74초</b>로 최종 선택했습니다.</p>
+          <p class="mini-copy">변경 전 0.92초/후 0.74초를 각 10회 비교. 기록과 선택 근거는 공개 소스의 <code>T02_EVIDENCE.md</code>에 남깁니다.</p>
         </section>
       </aside>
     </section>
