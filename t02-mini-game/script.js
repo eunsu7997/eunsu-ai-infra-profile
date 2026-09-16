@@ -148,7 +148,7 @@
     let dx = dir.x, dy = dir.y;
     if (dx === 0 && dy === 0) dy = -1;
     state.player.x = clamp(state.player.x + dx * DASH_DISTANCE, 22, canvas.width-22);
-    state.player.y = clamp(state.player.y + dy * DASH_DISTANCE, 88, canvas.height-72);
+    state.player.y = clamp(state.player.y + dy * DASH_DISTANCE, 18, canvas.height-72);
     state.dashCooldown = DASH_COOLDOWN;
     state.invuln = Math.max(state.invuln, .22);
     state.score += 18;
@@ -279,7 +279,7 @@
 
     const mv=movementVector();
     state.player.x=clamp(state.player.x+mv.x*PLAYER_SPEED*dt,22,canvas.width-22);
-    state.player.y=clamp(state.player.y+mv.y*PLAYER_SPEED*dt,88,canvas.height-72);
+    state.player.y=clamp(state.player.y+mv.y*PLAYER_SPEED*dt,18,canvas.height-72);
 
     accumulator += dt*1000;
     const currentInterval = ATTACK_INTERVAL_MS * (state.phase===3?.76:state.phase===2?.90:1.12);
