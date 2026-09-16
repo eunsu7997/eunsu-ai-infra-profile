@@ -6,17 +6,32 @@
   const $ = (id) => document.getElementById(id);
 
   const UI = {
-    startOverlay: $('startOverlay'), pauseOverlay: $('pauseOverlay'), resultOverlay: $('resultOverlay'),
-    startBtn: $('startBtn'), restartBtn: $('restartBtn'), effectToggle: $('effectToggle'),
-    timeText: $('timeText'), phaseText: $('phaseText'), bossBar: $('bossBar'), hearts: $('hearts'),
-    scoreText: $('scoreText'), comboText: $('comboText'), dashText: $('dashText'), stateText: $('stateText'),
-    winsText: $('winsText'), bestScoreText: $('bestScoreText'), bestTimeText: $('bestTimeText'),
-    resultKicker: $('resultKicker'), resultTitle: $('resultTitle'), resultSummary: $('resultSummary'),
-    gradeText: $('gradeText'), scoreResult: $('scoreResult'), dodgeResult: $('dodgeResult')
+    startOverlay: $('startOverlay'),
+    pauseOverlay: $('pauseOverlay'),
+    resultOverlay: $('resultOverlay'),
+    startBtn: $('startBtn'),
+    restartBtn: $('restartBtn'),
+    effectToggle: $('effectToggle'),
+    timeText: $('timeText'),
+    phaseText: $('phaseText'),
+    bossBar: $('bossBar'),
+    hearts: $('hearts'),
+    scoreText: $('scoreText'),
+    comboText: $('comboText'),
+    dashText: $('dashText'),
+    stateText: $('stateText'),
+    winsText: $('winsText'),
+    bestScoreText: $('bestScoreText'),
+    bestTimeText: $('bestTimeText'),
+    resultKicker: $('resultKicker'),
+    resultTitle: $('resultTitle'),
+    resultSummary: $('resultSummary'),
+    gradeText: $('gradeText'),
+    scoreResult: $('scoreResult'),
+    dodgeResult: $('dodgeResult')
   };
 
   const ROUND_SECONDS = 28;
-  // 게임성 조정: 다른 난이도 값은 그대로 두고 기본 패턴 간격만 740ms -> 650ms로 변경.
   const ATTACK_INTERVAL_MS = 650;
   const STORAGE_KEY = 'raidzero:v1';
   const PLAYER_RADIUS = 12;
@@ -24,6 +39,8 @@
   const DASH_DISTANCE = 105;
   const DASH_COOLDOWN = 3.0;
   const DAMAGE_INVULN = 0.82;
+  const S_MIN_DODGES = 50;
+  const S_MIN_SCORE = 3600;
 
   let rafId = 0;
   let lastTs = 0;
@@ -38,16 +55,19 @@
 
   function createFreshState(){
     return {
-      mode:'ready', elapsed:0, timeLeft:ROUND_SECONDS, phase:1, hp:5, score:0, combo:0, dodges:0,
-      dashCooldown:0, invuln:0, player:{x:480,y:385}, hazards:[], particles:[], screenShake:0,
-      dashFx:null, lastPatternName:'-', roundStartedAt:0, result:null
+      mode:'ready', elapsed:0, timeLeft:ROUND_SECONDS, phase:1,
+      hp:5, score:0, combo:0, dodges:0, dashCooldown:0, invuln:0,
+      player:{x:480,y:385}, hazards:[], particles:[], screenShake:0,
+      dashFx:null, clearFx:null, lastPatternName:'-', roundStartedAt:0, result:null
     };
   }
 
   function sanitizeRecord(raw){
     const safe = { wins:0, bestScore:0, bestTime:0 };
     if (!raw || typeof raw !== 'object') return safe;
-    const wins = Number(raw.wins), bestScore = Number(raw.bestScore), bestTime = Number(raw.bestTime);
+    const wins = Number(raw.wins);
+    const bestScore = Number(raw.bestScore);
+    const bestTime = Number(raw.bestTime);
     return {
       wins: Number.isFinite(wins) && wins >= 0 ? Math.floor(wins) : 0,
       bestScore: Number.isFinite(bestScore) && bestScore >= 0 ? Math.floor(bestScore) : 0,
@@ -106,19 +126,36 @@
   }
 
   function endRound(success){
+    if (state.mode !== 'playing') return;
+
     state.mode = success ? 'success' : 'fail';
     const survived = Math.min(ROUND_SECONDS, state.elapsed);
+
+    if (success){
+      state.hazards.length = 0;
+      state.dashFx = null;
+      if (!effectsReduced){
+        state.clearFx = { startedAt:performance.now(), duration:1.0 };
+        burst(canvas.width/2,68,64,'#75eaff');
+        burst(canvas.width/2,canvas.height/2,42,'#a7f5ff');
+      }
+    } else if (!effectsReduced){
+      burst(canvas.width/2, canvas.height/2, 28, '#ff5369');
+    }
+
     const grade = getGrade(success);
     state.result = { success, grade, score:Math.floor(state.score), dodges:state.dodges, survived };
+
     if (success) records.wins += 1;
     records.bestScore = Math.max(records.bestScore, Math.floor(state.score));
     records.bestTime = Math.max(records.bestTime, survived);
     saveRecords();
 
-    if (!effectsReduced) burst(canvas.width/2, canvas.height/2, success ? 54 : 28, success ? '#6ef0b2' : '#ff5369');
     UI.resultKicker.textContent = success ? 'RAID CLEAR' : 'TRAINING FAILED';
     UI.resultTitle.textContent = success ? 'NULL CORE 생존 성공' : '레이드 실패';
-    UI.resultSummary.textContent = success ? '3개 페이즈를 모두 버텼습니다.' : `${survived.toFixed(1)}초 생존 후 HP가 0이 되었습니다.`;
+    UI.resultSummary.textContent = success
+      ? `3개 페이즈를 모두 버텼습니다. S 조건: 무피격 + 회피 ${S_MIN_DODGES}+ + ${S_MIN_SCORE.toLocaleString()}점+`
+      : `${survived.toFixed(1)}초 생존 후 HP가 0이 되었습니다.`;
     UI.gradeText.textContent = grade;
     UI.scoreResult.textContent = Math.floor(state.score).toLocaleString();
     UI.dodgeResult.textContent = String(state.dodges);
@@ -129,15 +166,17 @@
 
   function getGrade(success){
     if (!success) return state.elapsed >= 20 ? 'C' : 'D';
-    if (state.hp === 5) return 'S';
-    if (state.hp >= 3) return 'A';
-    return 'B';
+    if (state.hp === 5 && state.dodges >= S_MIN_DODGES && state.score >= S_MIN_SCORE) return 'S';
+    if (state.hp >= 4) return 'A';
+    if (state.hp >= 2) return 'B';
+    return 'C';
   }
 
   function coreDashAction(){
     debug.coreInputEvents += 1;
     if (state.mode !== 'playing') return;
     debug.coreActions += 1;
+
     if (state.dashCooldown > 0){
       state.lastPatternName = 'DASH BLOCKED';
       return;
@@ -155,14 +194,13 @@
     state.player.x = toX;
     state.player.y = toY;
     state.dashCooldown = DASH_COOLDOWN;
-    state.invuln = Math.max(state.invuln, .22);
+    state.invuln = Math.max(state.invuln, .24);
     state.score += 18;
 
     if (!effectsReduced){
-      state.dashFx = { fromX, fromY, toX, toY, age:0, duration:.24 };
-      // 시작점과 도착점에서 입자가 터지며 이동 잔상이 이어진다.
-      burst(fromX,fromY,8,'#57e7ff');
-      burst(toX,toY,18,'#a7f5ff');
+      state.dashFx = { fromX, fromY, toX, toY, age:0, duration:.28 };
+      burst(fromX,fromY,10,'#57e7ff');
+      burst(toX,toY,20,'#c7fbff');
     }
   }
 
@@ -190,19 +228,19 @@
     state.hazards.push({type:'cross',x,y,width,t:0,warning,active:.21,hit:false});
   }
 
-  function aimedCircle(scale=1){
-    addCircle(state.player.x,state.player.y,64*scale,.67);
+  function aimedCircle(scale=1, warning=.67){
+    addCircle(state.player.x,state.player.y,64*scale,warning);
   }
 
-  function ringBurst(){
-    for(let i=0;i<5;i++){
+  function ringBurst(count=5){
+    for(let i=0;i<count;i++){
       const a=Math.random()*Math.PI*2;
       const d=95+Math.random()*130;
       addCircle(
         canvas.width/2+Math.cos(a)*d,
         canvas.height/2+Math.sin(a)*d,
         46+Math.random()*18,
-        .73+Math.random()*.16
+        .68+Math.random()*.14
       );
     }
   }
@@ -211,7 +249,7 @@
     if (state.mode !== 'playing') return;
 
     if (initial){
-      aimedCircle(.92);
+      aimedCircle(.92,.72);
       state.lastPatternName='추적 장판';
       return;
     }
@@ -220,51 +258,55 @@
     const choice = Math.random();
 
     if (p === 1){
-      if (choice < .52){
-        aimedCircle();
+      if (choice < .50){
+        aimedCircle(1,.64);
         state.lastPatternName='추적 원형 장판';
       } else {
-        ringBurst();
+        ringBurst(5);
         state.lastPatternName='5연속 원형 장판';
       }
       return;
     }
 
     if (p === 2){
-      if (choice < .34){
-        addBeam(Math.random()*Math.PI,64,.72);
+      if (choice < .32){
+        addBeam(Math.random()*Math.PI,66,.66);
         state.lastPatternName='회전 레이저';
-      } else if (choice < .67){
-        addDonut(canvas.width/2,canvas.height/2,92,194,.78);
+      } else if (choice < .64){
+        addDonut(canvas.width/2,canvas.height/2,92,198,.72);
         state.lastPatternName='도넛 장판';
       } else {
-        aimedCircle();
+        aimedCircle(1,.60);
         addCircle(
           clamp(state.player.x + rand(-95,95),70,canvas.width-70),
           clamp(state.player.y + rand(-95,95),70,canvas.height-95),
-          52,.70
+          54,.66
         );
         state.lastPatternName='2연속 추적 장판';
       }
       return;
     }
 
-    if (choice < .26){
-      addBeam(Math.random()*Math.PI,58,.58);
-      addBeam(Math.random()*Math.PI,58,.84);
-      state.lastPatternName='2연속 회전 레이저';
+    if (choice < .25){
+      addBeam(Math.random()*Math.PI,60,.50);
+      addBeam(Math.random()*Math.PI,60,.70);
+      addCircle(state.player.x,state.player.y,56,.62);
+      state.lastPatternName='2연속 레이저 + 추적 장판';
     } else if (choice < .50){
-      addCross(state.player.x,state.player.y,54,.62);
-      addCircle(canvas.width/2,canvas.height/2,76,.86);
-      state.lastPatternName='십자 + 중앙 폭발';
-    } else if (choice < .74){
-      addDonut(state.player.x,state.player.y,72,166,.63);
-      aimedCircle(.92);
-      state.lastPatternName='추적 도넛 + 원형';
+      addCross(state.player.x,state.player.y,58,.54);
+      addCircle(canvas.width/2,canvas.height/2,82,.72);
+      addCircle(clamp(state.player.x+rand(-70,70),70,canvas.width-70),clamp(state.player.y+rand(-70,70),70,canvas.height-95),50,.64);
+      state.lastPatternName='십자 + 중앙폭발 + 추적';
+    } else if (choice < .75){
+      addDonut(state.player.x,state.player.y,70,170,.54);
+      aimedCircle(.96,.58);
+      addBeam(Math.random()*Math.PI,52,.72);
+      state.lastPatternName='추적 도넛 + 원형 + 레이저';
     } else {
-      ringBurst();
-      addBeam(Math.random()*Math.PI,54,.74);
-      state.lastPatternName='5연속 장판 + 레이저';
+      ringBurst(6);
+      addBeam(Math.random()*Math.PI,56,.58);
+      addBeam(Math.random()*Math.PI,48,.78);
+      state.lastPatternName='6연속 장판 + 2연속 레이저';
     }
   }
 
@@ -280,6 +322,7 @@
     state.elapsed += dt;
     state.timeLeft = Math.max(0, ROUND_SECONDS - state.elapsed);
     state.phase = state.elapsed < 9 ? 1 : state.elapsed < 18 ? 2 : 3;
+
     if (state.phase !== beforePhase){
       showPhaseBanner(state.phase===3 ? 'PHASE 3 — ENRAGE' : `PHASE ${state.phase}`);
       accumulator = 0;
@@ -287,6 +330,7 @@
 
     state.dashCooldown = Math.max(0,state.dashCooldown-dt);
     state.invuln = Math.max(0,state.invuln-dt);
+
     if (state.dashFx){
       state.dashFx.age += dt;
       if (state.dashFx.age >= state.dashFx.duration) state.dashFx = null;
@@ -297,7 +341,7 @@
     state.player.y=clamp(state.player.y+mv.y*PLAYER_SPEED*dt,18,canvas.height-72);
 
     accumulator += dt*1000;
-    const currentInterval = ATTACK_INTERVAL_MS * (state.phase===3?.76:state.phase===2?.90:1.12);
+    const currentInterval = ATTACK_INTERVAL_MS * (state.phase===3 ? .62 : state.phase===2 ? .86 : 1.06);
     if(accumulator>=currentInterval){
       accumulator=0;
       spawnPattern();
@@ -369,7 +413,8 @@
     }
 
     if(h.type==='cross'){
-      return Math.abs(px-h.x)<=h.width/2+PLAYER_RADIUS*.55 || Math.abs(py-h.y)<=h.width/2+PLAYER_RADIUS*.55;
+      return Math.abs(px-h.x)<=h.width/2+PLAYER_RADIUS*.55 ||
+             Math.abs(py-h.y)<=h.width/2+PLAYER_RADIUS*.55;
     }
     return false;
   }
@@ -379,7 +424,10 @@
     for(let i=0;i<count;i++){
       const a=Math.random()*Math.PI*2;
       const s=rand(55,190);
-      state.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.22,.55),max:.55,color});
+      state.particles.push({
+        x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,
+        life:rand(.22,.55),max:.55,color
+      });
     }
   }
 
@@ -387,6 +435,7 @@
     const shake = effectsReduced?0:state.screenShake;
     const sx=shake?rand(-shake,shake):0;
     const sy=shake?rand(-shake,shake):0;
+
     ctx.save();
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.translate(sx,sy);
@@ -396,6 +445,7 @@
     drawDashFx();
     drawPlayer();
     drawParticles();
+    drawClearFx();
     ctx.restore();
   }
 
@@ -424,10 +474,20 @@
 
   function drawBoss(){
     const x=canvas.width/2,y=68;
+    let alpha=1;
+    let scale=1;
+
+    if (state.mode==='success' && state.clearFx && !effectsReduced){
+      const t=clamp((performance.now()-state.clearFx.startedAt)/(state.clearFx.duration*1000),0,1);
+      alpha=1-t;
+      scale=1+t*.9;
+    }
+
     const pulse=effectsReduced?1:1+Math.sin(performance.now()/220)*.05;
     ctx.save();
+    ctx.globalAlpha=alpha;
     ctx.translate(x,y);
-    ctx.scale(pulse,pulse);
+    ctx.scale(pulse*scale,pulse*scale);
     ctx.shadowBlur=28;
     ctx.shadowColor=state.phase===3?'#ff8b55':'#ff5369';
     ctx.fillStyle=state.phase===3?'#8b3529':'#6d2732';
@@ -435,54 +495,6 @@
     ctx.fillStyle=state.phase===3?'#ff9b69':'#ff6578';
     ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();
     ctx.restore();
-  }
-
-  function drawDashFx(){
-    if (effectsReduced || !state.dashFx) return;
-    const fx = state.dashFx;
-    const p = clamp(fx.age/fx.duration,0,1);
-    const fade = 1-p;
-
-    ctx.save();
-    ctx.globalCompositeOperation='lighter';
-
-    // 순간 이동 방향을 보여주는 빛의 궤적.
-    const grad=ctx.createLinearGradient(fx.fromX,fx.fromY,fx.toX,fx.toY);
-    grad.addColorStop(0,'rgba(87,231,255,0)');
-    grad.addColorStop(.35,`rgba(87,231,255,${.45*fade})`);
-    grad.addColorStop(1,`rgba(216,251,255,${.9*fade})`);
-    ctx.strokeStyle=grad;
-    ctx.lineWidth=8+10*fade;
-    ctx.lineCap='round';
-    ctx.shadowBlur=24;
-    ctx.shadowColor='#57e7ff';
-    ctx.beginPath();
-    ctx.moveTo(fx.fromX,fx.fromY);
-    ctx.lineTo(fx.toX,fx.toY);
-    ctx.stroke();
-
-    // 이동 경로에 잔상 5개.
-    for(let i=1;i<=5;i++){
-      const t=i/6;
-      const x=fx.fromX+(fx.toX-fx.fromX)*t;
-      const y=fx.fromY+(fx.toY-fx.fromY)*t;
-      ctx.globalAlpha=(.10+i*.055)*fade;
-      ctx.fillStyle='#baf8ff';
-      ctx.beginPath();
-      ctx.arc(x,y,PLAYER_RADIUS*(.55+t*.28),0,Math.PI*2);
-      ctx.fill();
-    }
-
-    // 도착점에서 퍼지는 원형 충격파.
-    ctx.globalAlpha=.85*fade;
-    ctx.strokeStyle='#d8fbff';
-    ctx.lineWidth=3;
-    ctx.beginPath();
-    ctx.arc(fx.toX,fx.toY,PLAYER_RADIUS+4+p*32,0,Math.PI*2);
-    ctx.stroke();
-
-    ctx.restore();
-    ctx.globalAlpha=1;
   }
 
   function drawPlayer(){
@@ -493,9 +505,67 @@
     ctx.shadowColor='#57e7ff';
     ctx.fillStyle='#d8fbff';
     ctx.beginPath();ctx.arc(x,y,PLAYER_RADIUS,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#57e7ff';
-    ctx.lineWidth=3;
+    ctx.strokeStyle='#57e7ff';ctx.lineWidth=3;ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawDashFx(){
+    if (effectsReduced || !state.dashFx) return;
+    const fx=state.dashFx;
+    const p=clamp(fx.age/fx.duration,0,1);
+    const fade=1-p;
+
+    ctx.save();
+    ctx.lineCap='round';
+    ctx.shadowBlur=24;
+    ctx.shadowColor='#57e7ff';
+    ctx.strokeStyle=`rgba(87,231,255,${.85*fade})`;
+    ctx.lineWidth=10*fade+2;
+    ctx.beginPath();
+    ctx.moveTo(fx.fromX,fx.fromY);
+    ctx.lineTo(fx.toX,fx.toY);
     ctx.stroke();
+
+    for(let i=0;i<5;i++){
+      const q=(i+1)/6;
+      const x=fx.fromX+(fx.toX-fx.fromX)*q;
+      const y=fx.fromY+(fx.toY-fx.fromY)*q;
+      ctx.globalAlpha=fade*(.55-q*.25);
+      ctx.fillStyle='#bff8ff';
+      ctx.beginPath();
+      ctx.arc(x,y,PLAYER_RADIUS*(.95-q*.45),0,Math.PI*2);
+      ctx.fill();
+    }
+
+    ctx.globalAlpha=fade;
+    ctx.strokeStyle='#d8fbff';
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.arc(fx.toX,fx.toY,18+p*34,0,Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawClearFx(){
+    if (effectsReduced || !state.clearFx) return;
+    const t=clamp((performance.now()-state.clearFx.startedAt)/(state.clearFx.duration*1000),0,1);
+    if (t>=1){ state.clearFx=null; return; }
+
+    ctx.save();
+    ctx.globalAlpha=1-t;
+    ctx.strokeStyle='#75eaff';
+    ctx.shadowBlur=28;
+    ctx.shadowColor='#57e7ff';
+    ctx.lineWidth=6*(1-t)+1;
+
+    for(let i=0;i<3;i++){
+      const delayed=clamp((t-i*.12)/(1-i*.12),0,1);
+      const r=40+delayed*360;
+      ctx.globalAlpha=(1-delayed)*.8;
+      ctx.beginPath();
+      ctx.arc(canvas.width/2,canvas.height/2,r,0,Math.PI*2);
+      ctx.stroke();
+    }
     ctx.restore();
   }
 
@@ -561,13 +631,6 @@
     UI.bestTimeText.textContent=records.bestTime.toFixed(1);
   }
 
-  function syncDifficultyCopy(){
-    const value=document.querySelector('.difficulty-card p b');
-    if(value) value.textContent='패턴 간격 0.65초';
-    const note=document.querySelector('.difficulty-card .mini-copy');
-    if(note) note.textContent='현재 체감 난이도 조정 중입니다. 최종 확정 뒤 전·후 10회씩 다시 비교해 증거 기록을 갱신합니다.';
-  }
-
   function frame(ts){
     try{
       const dt=Math.min(.033,(ts-lastTs)/1000||0);
@@ -597,9 +660,20 @@
     else if(e.code==='KeyP') togglePause();
     else if(e.code==='KeyR' && (state.mode==='success'||state.mode==='fail')) restartRound();
   });
+
   window.addEventListener('keyup',(e)=>keyDirection(e.code,false));
-  window.addEventListener('blur',()=>{if(state.mode==='playing'){pausedByBlur=true;togglePause(true);}});
-  window.addEventListener('focus',()=>{if(pausedByBlur){pausedByBlur=false;togglePause(false);}});
+  window.addEventListener('blur',()=>{
+    if(state.mode==='playing'){
+      pausedByBlur=true;
+      togglePause(true);
+    }
+  });
+  window.addEventListener('focus',()=>{
+    if(pausedByBlur){
+      pausedByBlur=false;
+      togglePause(false);
+    }
+  });
   window.addEventListener('resize',()=>syncUi());
 
   UI.startBtn.addEventListener('click',startRound);
@@ -613,25 +687,28 @@
       state.particles.length=0;
       state.screenShake=0;
       state.dashFx=null;
+      state.clearFx=null;
     }
   });
 
-  function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
-  function rand(min,max){return min+Math.random()*(max-min);}
+  function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+  function rand(min,max){ return min+Math.random()*(max-min); }
 
   window.__raidZeroDebug={
     getState:()=>JSON.parse(JSON.stringify(state)),
     getRecords:()=>({...records}),
     getCounters:()=>({...debug}),
-    start:startRound,restart:restartRound,
-    pause:()=>togglePause(true),resume:()=>togglePause(false),dash:coreDashAction,
+    start:startRound,
+    restart:restartRound,
+    pause:()=>togglePause(true),
+    resume:()=>togglePause(false),
+    dash:coreDashAction,
     corruptSave:(text)=>localStorage.setItem(STORAGE_KEY,text),
     clearSave:()=>localStorage.removeItem(STORAGE_KEY),
     reloadRecords:()=>{records=loadRecords();syncUi();return {...records};},
-    config:{ROUND_SECONDS,ATTACK_INTERVAL_MS,STORAGE_KEY}
+    config:{ROUND_SECONDS,ATTACK_INTERVAL_MS,STORAGE_KEY,S_MIN_DODGES,S_MIN_SCORE}
   };
 
-  syncDifficultyCopy();
   resetRound();
   rafId=requestAnimationFrame(frame);
 })();
