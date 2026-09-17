@@ -68,6 +68,7 @@
           <div class="stat"><span>SCORE</span><strong id="scoreText">0</strong></div>
           <div class="stat"><span>COMBO</span><strong id="comboText">x0</strong></div>
           <div class="stat"><span>DASH</span><strong id="dashText">READY</strong></div>
+          <div class="stat"><span>SHIELD</span><strong id="shieldText">-</strong></div>
           <div class="stat"><span>STATE</span><strong id="stateText">READY</strong></div>
         </div>
       </section>
@@ -78,6 +79,7 @@
           <ol>
             <li>빨간 예고 구역이 터지기 전에 안전 지대로 이동합니다.</li>
             <li>피격 시 HP 1 감소. HP 0이면 즉시 실패합니다.</li>
+            <li>노란 실드 코어를 먹으면 1.5초 무적이며, Space 대시 직후에는 0.5초 무적입니다.</li>
             <li>28초 생존 시 성공. S등급은 무피격 + 회피 50회 이상 + 3,600점 이상입니다.</li>
           </ol>
         </section>
@@ -87,7 +89,7 @@
           <div class="control-grid">
             <div><kbd>WASD</kbd><span>이동</span></div>
             <div><kbd>↑↓←→</kbd><span>이동</span></div>
-            <div><kbd>SPACE</kbd><span>대시</span></div>
+            <div><kbd>SPACE</kbd><span>대시 + 0.5초 무적</span></div>
             <div><kbd>P</kbd><span>일시정지</span></div>
             <div><kbd>R</kbd><span>결과에서 재시작</span></div>
           </div>
@@ -106,12 +108,12 @@
         <section class="info-card effect-card">
           <div class="card-head"><h2>효과 설정</h2><span>즉시 적용</span></div>
           <button id="effectToggle" class="secondary-btn" type="button" aria-pressed="false">파티클/흔들림 줄이기: OFF</button>
-          <p class="mini-copy">대시·피격·페이즈 전환·클리어/실패 때만 파티클이 발생합니다. 줄이기를 켜면 대시 잔상·파티클·흔들림·클리어 충격파도 즉시 사라집니다.</p>
+          <p class="mini-copy">대시·피격·페이즈 전환·실드 코어 획득·클리어/실패 때만 파티클이 발생합니다. 줄이기를 켜면 대시 잔상·파티클·흔들림·클리어 충격파도 즉시 사라집니다.</p>
         </section>
 
         <section class="info-card difficulty-card">
           <div class="card-head"><h2>난이도</h2><span class="badge">NORMAL+</span></div>
-          <p><b>최종 패턴 기준 간격 0.70초</b>를 사용합니다.</p>
+          <p><b>기본 패턴 간격 0.70초</b>를 사용합니다.</p>
           <p class="mini-copy">PHASE 3는 더 빠른 간격과 복합 패턴을 사용합니다. 0.65초와 0.70초를 같은 조건으로 각 10회 비교한 기록과 선택 근거는 <code>T02_EVIDENCE.md</code>에 정리합니다.</p>
         </section>
       </aside>
