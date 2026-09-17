@@ -485,17 +485,90 @@
       scale=1+t*.9;
     }
 
-    const pulse=effectsReduced?1:1+Math.sin(performance.now()/220)*.05;
+    const now = performance.now();
+    const pulse=effectsReduced?1:1+Math.sin(now/220)*.05;
+    const auraColor = state.phase===3 ? '#ff9a55' : state.phase===2 ? '#ff6f8d' : '#ff5369';
+    const coreDark = state.phase===3 ? '#70231d' : state.phase===2 ? '#5d1f37' : '#4f1b29';
+    const coreMid = state.phase===3 ? '#b53a2a' : state.phase===2 ? '#a82d58' : '#912943';
+    const coreBright = state.phase===3 ? '#ffd1a3' : '#ffc7d4' ;
+    const ringRot = now/900;
+
     ctx.save();
     ctx.globalAlpha=alpha;
     ctx.translate(x,y);
     ctx.scale(pulse*scale,pulse*scale);
-    ctx.shadowBlur=28;
-    ctx.shadowColor=state.phase===3?'#ff8b55':'#ff5369';
-    ctx.fillStyle=state.phase===3?'#8b3529':'#6d2732';
-    ctx.beginPath();ctx.arc(0,0,22,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=state.phase===3?'#ff9b69':'#ff6578';
-    ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();
+
+    // outer warning aura
+    const aura = ctx.createRadialGradient(0,0,8,0,0,54);
+    aura.addColorStop(0,'rgba(255,110,130,.16)');
+    aura.addColorStop(.55, state.phase===3 ? 'rgba(255,120,70,.12)' : 'rgba(255,84,110,.10)');
+    aura.addColorStop(1,'rgba(255,84,110,0)');
+    ctx.fillStyle=aura;
+    ctx.beginPath(); ctx.arc(0,0,56,0,Math.PI*2); ctx.fill();
+
+    // rotating outer ring
+    ctx.save();
+    ctx.rotate(ringRot);
+    ctx.strokeStyle='rgba(120,220,255,.28)';
+    ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(0,0,38,0,Math.PI*2); ctx.stroke();
+    for(let i=0;i<4;i++){
+      ctx.rotate(Math.PI/2);
+      ctx.strokeStyle='rgba(255,255,255,.10)';
+      ctx.beginPath();
+      ctx.moveTo(0,-48);
+      ctx.lineTo(0,-34);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // four orbit shards
+    if(!effectsReduced){
+      for(let i=0;i<4;i++){
+        const ang = ringRot*1.8 + i*Math.PI/2;
+        const sx = Math.cos(ang)*30;
+        const sy = Math.sin(ang)*30;
+        ctx.save();
+        ctx.translate(sx,sy);
+        ctx.rotate(ang + Math.PI/4);
+        ctx.fillStyle='rgba(87,231,255,.85)';
+        ctx.beginPath();
+        ctx.moveTo(0,-5); ctx.lineTo(5,0); ctx.lineTo(0,8); ctx.lineTo(-5,0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // core body
+    ctx.shadowBlur=32;
+    ctx.shadowColor=auraColor;
+    const coreGrad = ctx.createRadialGradient(-6,-7,4,0,0,25);
+    coreGrad.addColorStop(0, coreBright);
+    coreGrad.addColorStop(.4, coreMid);
+    coreGrad.addColorStop(1, coreDark);
+    ctx.fillStyle=coreGrad;
+    ctx.beginPath();ctx.arc(0,0,24,0,Math.PI*2);ctx.fill();
+
+    // inner iris ring
+    ctx.shadowBlur=0;
+    ctx.strokeStyle='rgba(255,235,240,.42)';
+    ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(0,0,13,0,Math.PI*2);ctx.stroke();
+
+    // center pupil / eye
+    ctx.fillStyle = state.phase===3 ? '#fff0d8' : '#ffe8ee';
+    ctx.beginPath();ctx.arc(0,0,6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle = auraColor;
+    ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fill();
+
+    // lower targeting chevrons for more boss-like silhouette
+    ctx.strokeStyle='rgba(87,231,255,.35)';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(-20,26); ctx.lineTo(0,38); ctx.lineTo(20,26);
+    ctx.stroke();
+
     ctx.restore();
   }
 
@@ -637,7 +710,7 @@
 
   function frame(ts){
     try{
-      const dt=Math.min(.033,(ts-lastTs)/1000||0);
+      const dt=Math.max(0,Math.min(.033,(ts-lastTs)/1000||0));
       lastTs=ts;
       update(dt);
       render();
