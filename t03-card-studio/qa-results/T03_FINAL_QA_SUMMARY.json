@@ -1,0 +1,13 @@
+{
+  "C03_C16": {"pass": 14, "fail": 0},
+  "C17_C24": {"pass": 8, "fail": 0},
+  "C25_C30": {"pass": 6, "fail": 0},
+  "C31": "PASS",
+  "C32": "PASS",
+  "console_errors": 0,
+  "page_errors": 0,
+  "manual_final_checks": [
+    "C01 public/incognito URLs",
+    "C21 public-origin IndexedDB F5 persistence"
+  ]
+}

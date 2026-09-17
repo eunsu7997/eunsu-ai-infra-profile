@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="PIXEL CARD STUDIO - PNG/JPEG 이미지에 문구를 배치하고 SNS 비율로 저장하는 브라우저 카드 편집기" />
+  <title>PIXEL CARD STUDIO</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">T03 · IMAGE CARD EDITOR</p>
+        <h1>PIXEL <span>CARD</span> STUDIO</h1>
+        <p class="subcopy">PNG·JPEG 한 장에 문구를 배치하고 1:1 · 4:5 · 9:16 카드로 저장합니다.</p>
+      </div>
+      <div class="status-box" aria-live="polite">
+        <span>EDITOR STATUS</span>
+        <strong id="statusText">READY</strong>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <aside class="panel controls-panel" aria-label="이미지와 문구 편집 도구">
+        <section class="tool-card" id="imageTools">
+          <div class="tool-head"><h2>01 · 이미지 편집</h2><span>PNG / JPEG</span></div>
+          <label class="file-drop" for="imageInput">
+            <input id="imageInput" type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" />
+            <b>이미지 불러오기</b>
+            <small>PNG 또는 JPEG · 최대 15MB</small>
+          </label>
+          <div id="fileMessage" class="message neutral" role="status">이미지를 넣기 전에는 기본 그라데이션 배경을 사용합니다.</div>
+
+          <label class="field-label" for="fitMode">맞춤 방식</label>
+          <select id="fitMode">
+            <option value="cover">화면 채우기 (Cover)</option>
+            <option value="contain">전체 보이기 (Contain)</option>
+          </select>
+
+          <div class="slider-row">
+            <label for="imageScale">이미지 확대 <output id="imageScaleOut">100%</output></label>
+            <input id="imageScale" type="range" min="60" max="180" value="100" />
+          </div>
+          <div class="two-col">
+            <div class="slider-row compact">
+              <label for="imageX">가로 위치 <output id="imageXOut">0</output></label>
+              <input id="imageX" type="range" min="-50" max="50" value="0" />
+            </div>
+            <div class="slider-row compact">
+              <label for="imageY">세로 위치 <output id="imageYOut">0</output></label>
+              <input id="imageY" type="range" min="-50" max="50" value="0" />
+            </div>
+          </div>
+        </section>
+
+        <section class="tool-card" id="textTools">
+          <div class="tool-head"><h2>02 · 문구 편집</h2><span>즉시 반영</span></div>
+          <label class="field-label" for="captionInput">문구</label>
+          <textarea id="captionInput" rows="4" maxlength="500">오늘의 한 장
+MAKE IT YOURS.</textarea>
+
+          <div class="two-col">
+            <div class="slider-row compact">
+              <label for="textX">가로 위치 <output id="textXOut">50%</output></label>
+              <input id="textX" type="range" min="5" max="95" value="50" />
+            </div>
+            <div class="slider-row compact">
+              <label for="textY">세로 위치 <output id="textYOut">78%</output></label>
+              <input id="textY" type="range" min="5" max="95" value="78" />
+            </div>
+          </div>
+
+          <div class="two-col inputs">
+            <label>문구 크기
+              <input id="fontSize" type="number" min="18" max="180" value="64" />
+            </label>
+            <label>문구 색
+              <input id="textColor" type="color" value="#ffffff" />
+            </label>
+          </div>
+
+          <div class="two-col inputs">
+            <label>정렬
+              <select id="textAlign">
+                <option value="center">가운데</option>
+                <option value="left">왼쪽</option>
+                <option value="right">오른쪽</option>
+              </select>
+            </label>
+            <label>줄 간격
+              <input id="lineHeight" type="number" min="0.9" max="2" step="0.05" value="1.18" />
+            </label>
+          </div>
+
+          <label class="check-row"><input id="textShadow" type="checkbox" checked /> 문구 그림자 사용</label>
+        </section>
+      </aside>
+
+      <section class="preview-panel" aria-label="카드 미리보기">
+        <div class="preview-head">
+          <div><p class="eyebrow">LIVE PREVIEW</p><h2 id="ratioTitle">1:1 SQUARE</h2></div>
+          <span id="canvasSizeText">1080 × 1080</span>
+        </div>
+        <div class="canvas-stage" id="canvasStage">
+          <canvas id="previewCanvas" width="1080" height="1080" aria-label="편집 결과 미리보기"></canvas>
+        </div>
+        <p class="preview-note">화면 미리보기와 다운로드 PNG는 같은 캔버스를 사용해 위치·줄바꿈·잘림을 동일하게 유지합니다.</p>
+      </section>
+
+      <aside class="panel output-panel" aria-label="비율 및 파일 저장 도구">
+        <section class="tool-card">
+          <div class="tool-head"><h2>03 · 화면 비율</h2><span>3종</span></div>
+          <div class="ratio-grid" role="group" aria-label="화면 비율 선택">
+            <button class="ratio-btn active" data-ratio="1:1" type="button"><b>1:1</b><span>Square</span></button>
+            <button class="ratio-btn" data-ratio="4:5" type="button"><b>4:5</b><span>Feed</span></button>
+            <button class="ratio-btn" data-ratio="9:16" type="button"><b>9:16</b><span>Story</span></button>
+          </div>
+        </section>
+
+        <section class="tool-card">
+          <div class="tool-head"><h2>04 · 결과 저장</h2><span>PNG</span></div>
+          <button id="downloadBtn" class="primary-btn" type="button">PNG 다운로드</button>
+          <p class="mini-copy">다운로드 파일에는 원본 사진의 EXIF/GPS 메타데이터를 복사하지 않습니다.</p>
+        </section>
+
+        <section class="tool-card template-card">
+          <div class="tool-head"><h2>05 · 템플릿</h2><span>CRUD · 자동 저장</span></div>
+          <label class="field-label" for="templateName">템플릿 이름</label>
+          <input id="templateName" class="text-input" type="text" maxlength="40" placeholder="예: NEON CARD" />
+          <div class="button-grid">
+            <button id="templateCreateBtn" class="secondary-btn" type="button">새로 저장</button>
+            <button id="templateUpdateBtn" class="secondary-btn" type="button">선택 수정</button>
+          </div>
+          <label class="field-label" for="templateSelect">저장된 템플릿</label>
+          <select id="templateSelect"><option value="">저장된 템플릿 없음</option></select>
+          <div class="button-grid">
+            <button id="templateLoadBtn" class="secondary-btn" type="button">불러오기</button>
+            <button id="templateDeleteBtn" class="danger-btn" type="button">삭제</button>
+          </div>
+          <div id="templateMessage" class="message neutral" role="status">템플릿은 이 브라우저에 저장되며 새로고침 뒤에도 유지됩니다.</div>
+        </section>
+
+        <section class="tool-card json-card">
+          <div class="tool-head"><h2>06 · JSON</h2><span>백업 · 복원</span></div>
+          <button id="jsonExportBtn" class="secondary-btn full" type="button">현재 편집 JSON 내보내기</button>
+          <label class="json-import" for="jsonInput">
+            <input id="jsonInput" type="file" accept="application/json,.json" />
+            <span>JSON 가져오기</span>
+          </label>
+          <div id="jsonMessage" class="message neutral" role="status">정상 JSON만 적용합니다. 손상·필수값 누락 JSON은 현재 작업을 바꾸지 않습니다.</div>
+        </section>
+
+        <section class="tool-card qa-card">
+          <div class="tool-head"><h2>QA 상태</h2><span>PART 3</span></div>
+          <div class="qa-line"><span>PNG / JPEG</span><b id="qaFile">대기</b></div>
+          <div class="qa-line"><span>템플릿 CRUD</span><b id="qaTemplate">READY</b></div>
+          <div class="qa-line"><span>새로고침 유지</span><b>IndexedDB</b></div>
+          <div class="qa-line"><span>JSON 오류</span><b>작업 유지</b></div>
+        </section>
+
+        <section class="tool-card next-card">
+          <div class="tool-head"><h2>PART 3 완료</h2><span>C25~C32</span></div>
+          <p>완성 이미지 3개 · 제작 방식 · 위치 메타데이터 · 개인정보/비밀값 · 제출 확인 문구와 AI/학생 판단을 검증했습니다.</p>
+        </section>
+      </aside>
+    </section>
+  </main>
+  <script src="./script.js"></script>
+</body>
+</html>
