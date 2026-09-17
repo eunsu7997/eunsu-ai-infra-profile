@@ -37,7 +37,7 @@
             <p class="lead">28초 동안 보스의 장판을 피해서 생존하세요.</p>
             <p class="controls-line"><b>WASD / 방향키</b> 이동 · <b>SPACE</b> 대시 · <b>P</b> 일시정지</p>
             <div class="phase-grid">
-              <div><b>PHASE 1</b><span>원형 장판 + 추적탄</span></div>
+              <div><b>PHASE 1</b><span>원형 장판 + 추적 장판</span></div>
               <div><b>PHASE 2</b><span>레이저 + 도넛 장판</span></div>
               <div><b>PHASE 3</b><span>복합 패턴 + 광폭화</span></div>
             </div>
@@ -89,7 +89,7 @@
             <div><kbd>↑↓←→</kbd><span>이동</span></div>
             <div><kbd>SPACE</kbd><span>대시</span></div>
             <div><kbd>P</kbd><span>일시정지</span></div>
-            <div><kbd>R</kbd><span>재시작</span></div>
+            <div><kbd>R</kbd><span>결과에서 재시작</span></div>
           </div>
         </section>
 
@@ -106,13 +106,13 @@
         <section class="info-card effect-card">
           <div class="card-head"><h2>효과 설정</h2><span>즉시 적용</span></div>
           <button id="effectToggle" class="secondary-btn" type="button" aria-pressed="false">파티클/흔들림 줄이기: OFF</button>
-          <p class="mini-copy">대시·피격·클리어 때만 파티클이 발생합니다. 줄이기를 켜면 대시 잔상·파티클·클리어 충격파도 즉시 사라집니다.</p>
+          <p class="mini-copy">대시·피격·페이즈 전환·클리어/실패 때만 파티클이 발생합니다. 줄이기를 켜면 대시 잔상·파티클·흔들림·클리어 충격파도 즉시 사라집니다.</p>
         </section>
 
         <section class="info-card difficulty-card">
           <div class="card-head"><h2>난이도</h2><span class="badge">NORMAL+</span></div>
-          <p><b>현재 패턴 기준 간격 0.70초</b>로 조정 중입니다.</p>
-          <p class="mini-copy">PHASE 3는 더 빠른 간격과 복합 패턴을 사용합니다. 게임성 확정 후 전/후 각 10회 기록을 다시 측정해 <code>T02_EVIDENCE.md</code>에 최종 반영합니다.</p>
+          <p><b>최종 패턴 기준 간격 0.70초</b>를 사용합니다.</p>
+          <p class="mini-copy">PHASE 3는 더 빠른 간격과 복합 패턴을 사용합니다. 0.65초와 0.70초를 같은 조건으로 각 10회 비교한 기록과 선택 근거는 <code>T02_EVIDENCE.md</code>에 정리합니다.</p>
         </section>
       </aside>
     </section>
