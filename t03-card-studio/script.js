@@ -105,7 +105,7 @@ function drawImage(w,h){
   const base=state.fit==='contain'?Math.min(w/iw,h/ih):Math.max(w/iw,h/ih);
   const scale=base*state.imageScale,dw=iw*scale,dh=ih*scale;
   const maxShiftX=(w+dw)*.34,maxShiftY=(h+dh)*.34;
-  const dx=(w-dw)/2+state.imageX*maxShiftX,dy=(h-dh)/2+state.imageY*maxShiftY;
+  // 슬라이더 값은 '보이는 영역(초점)' 기준: +가 오른쪽/아래쪽을 더 보여준다.\n  const dx=(w-dw)/2-state.imageX*maxShiftX,dy=(h-dh)/2-state.imageY*maxShiftY;
   ctx.drawImage(state.image,dx,dy,dw,dh);
 }
 function segmentGraphemes(text){
