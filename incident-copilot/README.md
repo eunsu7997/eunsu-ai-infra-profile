@@ -1,15 +1,22 @@
 # AI Incident Copilot
 
-> **장애 로그를 AI와 함께 분석해 원인 후보 → 조치 순서 → 검증 절차로 바꾸는 AI Infrastructure 운영 도구**
+> **장애 로그를 AI와 함께 분석해 원인 후보 -> 조치 순서 -> 검증 절차로 바꾸는 AI Infrastructure 운영 도구**
 
-운영 장애에서 중요한 것은 로그를 요약하는 것보다 **어디부터 확인해야 하는지** 빠르게 구조화하는 일이라고 보았습니다. 이 프로젝트는 FastAPI 기반 incident triage API에 재현 가능한 rule analyzer와 선택적 OpenAI-compatible LLM adapter를 결합합니다.
+운영 장애에서 중요한 것은 로그를 요약하는 것보다 **어디부터 확인해야 하는지 빠르게 구조화하고, 제안을 실제 증거와 대조하는 것**이라고 보았습니다. FastAPI 기반 incident triage API에 재현 가능한 deterministic analyzer와 선택적 OpenAI-compatible LLM adapter를 결합했습니다.
 
-## 핵심 원칙
+## What is proven
 
-- **SHOW**: API, 테스트, Docker, Kubernetes, metrics, dashboard 구성을 공개합니다.
-- **PROVE**: 실행한 것과 아직 실행하지 않은 것을 `docs/VALIDATION.md`에서 분리합니다.
-- **Human in the loop**: AI의 원인/조치 제안을 자동 실행하지 않고 로그·메트릭·이벤트와 대조합니다.
-- **Reproducible**: API key 없이도 deterministic mode로 핵심 흐름을 재현할 수 있습니다.
+최신 증거 기준 GitHub Actions **run #39**에서 아래 검증이 한 번의 pipeline으로 모두 성공했습니다.
+
+- pytest regression tests
+- Docker Compose configuration validation
+- Kubernetes manifest Helm lint
+- Docker image build + container boot
+- `GET /healthz`, `POST /analyze`, Prometheus metrics endpoint
+- Prometheus + Grafana runtime startup and scrape verification
+- Locust 10-user / 10-second load smoke test
+
+부하 smoke test 결과: **313 requests, 0 failures, 약 32.35 req/s, median 2 ms, p95 4 ms**. 이 수치는 GitHub-hosted runner의 deterministic mode 결과이며 GPU/LLM 성능 수치가 아닙니다.
 
 ## Architecture
 
@@ -17,10 +24,10 @@
 flowchart LR
  A[Incident Log] --> B[FastAPI]
  B --> C{Analyzer}
- C --> D[Rule Analyzer]
+ C --> D[Deterministic Rule Analyzer]
  C --> E[OpenAI-compatible LLM]
- E -->|failure| D
- D --> F[Incident Report]
+ E -->|endpoint failure| D
+ D --> F[Structured Incident Report]
  E --> F
  F --> G[Human Verification]
  B --> H[Prometheus Metrics]
@@ -29,9 +36,11 @@ flowchart LR
  K[Kubernetes Probes] --> B
 ```
 
-자세한 설명: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+## Why AI
 
-## Quick start
+AI/LLM은 장애 로그를 **severity, signals, likely causes, recommended actions**로 구조화하는 선택적 분석기로 사용합니다. AI의 제안을 자동 실행하지 않고 실제 로그, 메트릭, Kubernetes 이벤트와 대조하도록 verification 절차를 결과에 포함합니다. LLM endpoint 장애 시 deterministic analyzer로 fallback합니다.
+
+## Reproduce
 
 ```bash
 cd incident-copilot
@@ -39,7 +48,7 @@ python -m venv .venv
 # Windows: .venv\Scripts\activate
 # Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
-pytest -q
+python -m pytest -q
 uvicorn app.main:app --reload
 ```
 
@@ -49,9 +58,18 @@ curl -X POST http://127.0.0.1:8000/analyze \
  -d '{"service":"llm-serving","logs":"Pod terminated: OOMKilled. CUDA out of memory"}'
 ```
 
-## Optional LLM mode
+전체 stack:
 
-vLLM 등 OpenAI-compatible endpoint가 준비된 경우에만 사용합니다.
+```bash
+docker compose up --build
+```
+
+- API: localhost:8000
+- Prometheus: localhost:9090
+- Grafana: localhost:3000
+- Metrics: localhost:8000/metrics/
+
+## Optional LLM mode
 
 ```bash
 export ANALYZER_MODE=openai-compatible
@@ -61,71 +79,42 @@ export LLM_API_KEY=EMPTY
 uvicorn app.main:app --port 8000
 ```
 
-Endpoint 호출 실패 시 deterministic analyzer로 fallback합니다.
-
-## Docker + Observability
-
-```bash
-docker compose up --build
-```
-
-- API: localhost:8000
-- Prometheus: localhost:9090
-- Grafana: localhost:3000
-- Metrics: localhost:8000/metrics
-
-Grafana datasource와 dashboard는 자동 provisioning하도록 저장소에 포함했습니다.
-
-## Kubernetes
-
-```bash
-kubectl apply -f k8s/deployment.yaml
-kubectl port-forward svc/incident-copilot 8000:80
-```
-
-startup/readiness/liveness probe와 CPU/memory requests/limits를 정의합니다. 실제 클러스터 실행 증거가 없는 상태에서는 배포 완료라고 주장하지 않습니다.
+실제 OpenAI-compatible/vLLM endpoint와 NVIDIA GPU E2E는 별도 GPU 환경 증거가 생기기 전까지 완료라고 주장하지 않습니다.
 
 ## Failure scenarios
 
-| Scenario | Sample | Expected |
+| Scenario | Expected | Evidence |
 |---|---|---|
-| GPU/Pod OOM | `samples/oom.log` | CRITICAL |
-| Backend down | `samples/backend-down.log` | HIGH |
-| Overload | `samples/overload.log` | HIGH |
+| GPU/Pod OOM | CRITICAL | sample + regression test |
+| Backend connection refused | HIGH | sample + regression test + container smoke |
+| Timeout/overload | HIGH | sample + regression test |
+| LLM endpoint unavailable | deterministic fallback | mocked endpoint-failure regression test |
 
-## Load test
+## Failure -> Fix -> Re-test
 
-```bash
-locust -f loadtest/locustfile.py --host http://127.0.0.1:8000
-```
+실행하면서 발견된 실패도 결과물로 남겼습니다.
 
-수치는 실제 실행 후에만 기록합니다.
+1. Python import 실패 -> workflow working directory/PYTHONPATH 수정 -> CI 성공
+2. Docker 8000 port collision -> smoke container lifecycle 수정 -> 재검증
+3. Prometheus 첫 scrape 전 조회 race -> polling 후 `up=1` 검증 -> 재검증
+4. 최종 run #39 -> test, Docker, K8s lint, monitoring, load smoke 전 단계 success
+
+자세한 기록: [docs/EVIDENCE.md](docs/EVIDENCE.md)
 
 ## Evidence map
 
-| 주장 | 코드/증거 |
+| Claim | Evidence |
 |---|---|
-| API와 구조화 결과 | `app/main.py` |
-| 재현 가능한 분석 | `app/analyzers.py` |
-| LLM 확장 + fallback | `OpenAICompatibleAnalyzer` |
-| 회귀 테스트 | `tests/test_api.py` + GitHub Actions |
-| 컨테이너/관측성 | `Dockerfile`, `docker-compose.yml`, `monitoring/` |
-| K8s 운영 기본기 | `k8s/deployment.yaml` |
-| 장애 실험 입력 | `samples/` |
-| AI 활용과 인간 판단 | `docs/AI_PROCESS.md` |
-| 검증 범위 | `docs/VALIDATION.md` |
+| Structured incident API | `app/main.py` |
+| deterministic + LLM adapter/fallback | `app/analyzers.py` |
+| regression tests | `tests/test_api.py` |
+| Docker runtime | `Dockerfile`, `docker-compose.yml`, CI #39 |
+| Kubernetes configuration | `k8s/deployment.yaml`, Helm lint in CI #39 |
+| Prometheus/Grafana runtime | `monitoring/`, CI #39 |
+| load smoke | `loadtest/locustfile.py`, CI #39 |
+| AI/human verification process | `docs/AI_PROCESS.md` |
+| evidence ledger | `docs/EVIDENCE.md` |
 
-## AI를 어떻게 사용했나
+## Scope boundary
 
-AI를 코드 생성기로만 사용하지 않고 설계 검토, 실패 시나리오 생성, 테스트 초안, 누락 점검에 사용했습니다. 실제로 초기 CI workflow 위치가 잘못되어 실행되지 않는 문제를 발견했고, 저장소 루트 `.github/workflows/`로 수정했습니다. **AI 결과도 실행 여부를 확인하고 틀리면 수정한다**는 원칙을 프로젝트 문서에 남겼습니다.
-
-## 현재 검증 상태
-
-실제 GPU/vLLM end-to-end, Kubernetes cluster, Grafana 화면, 부하테스트 수치는 아직 실제 실행 증거가 없으므로 완료로 표시하지 않습니다. 자세한 상태는 [docs/VALIDATION.md](docs/VALIDATION.md)를 기준으로 합니다.
-
-## Portfolio docs
-
-- [AI-assisted problem solving](docs/AI_PROCESS.md)
-- [Validation record](docs/VALIDATION.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Submission copy](docs/SUBMISSION.md)
+검증된 것과 검증되지 않은 것을 분리합니다. 현재 **실제 GPU/vLLM E2E, NVIDIA GPU 할당/모델 로딩, 실제 Kubernetes cluster의 probe 캡처**는 증거가 없어 완료로 표시하지 않습니다. 반면 Docker runtime, monitoring runtime, API tests, manifest validation, load smoke는 GitHub Actions에서 재현 검증했습니다.
