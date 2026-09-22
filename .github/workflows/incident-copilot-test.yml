@@ -27,6 +27,9 @@ jobs:
         run: python -m pytest -q
       - name: Validate Docker Compose
         run: docker compose config -q
+      - name: Validate Kubernetes manifest
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work alpine/helm:3.18.6 lint --strict .ci/incident-copilot-chart
       - name: Build application image
         run: docker build -t incident-copilot:ci .
       - name: Smoke test container
