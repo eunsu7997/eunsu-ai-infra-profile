@@ -6,7 +6,7 @@
 
 ## What is proven
 
-최신 AI 평가 추가 전 기준 GitHub Actions **run #47**에서 아래 검증이 한 번의 pipeline으로 모두 성공했습니다.
+최종 기준 GitHub Actions **run #53**에서 아래 검증이 한 번의 pipeline으로 모두 성공했습니다.
 
 - pytest regression tests
 - Docker Compose configuration validation
@@ -16,7 +16,7 @@
 - Prometheus + Grafana runtime startup and scrape verification
 - Locust 10-user / 10-second load smoke test
 
-CI #47 부하 smoke test 결과: **299 requests, 0 failures, 약 31.02 req/s, median 2 ms, p95 3 ms**. 이 수치는 GitHub-hosted runner의 deterministic mode 결과이며 GPU/LLM 성능 수치가 아닙니다.
+CI #53 부하 smoke test 결과: **300 requests, 0 failures, 약 30.79 req/s, median 2 ms, p95 3 ms**. 이 수치는 GitHub-hosted runner의 deterministic mode 결과이며 GPU/LLM 성능 수치가 아닙니다.
 
 ## Architecture
 
@@ -113,7 +113,7 @@ uvicorn app.main:app --port 8000
 1. Python import 실패 -> workflow working directory/PYTHONPATH 수정 -> CI 성공
 2. Docker 8000 port collision -> smoke container lifecycle 수정 -> 재검증
 3. Prometheus 첫 scrape 전 조회 race -> polling 후 `up=1` 검증 -> 재검증
-4. CI #47 -> 8-case severity evaluation 8/8 + test, Docker, K8s lint, monitoring, load smoke 전 단계 success
+4. CI #53 -> 8-case severity evaluation 8/8 + test, Docker, K8s lint, monitoring, load smoke 전 단계 success
 
 자세한 기록: [docs/EVIDENCE.md](docs/EVIDENCE.md)
 
@@ -124,10 +124,10 @@ uvicorn app.main:app --port 8000
 | Structured incident API | `app/main.py` |
 | deterministic + LLM adapter/fallback | `app/analyzers.py` |
 | regression tests | `tests/test_api.py` |
-| Docker runtime | `Dockerfile`, `docker-compose.yml`, CI #47 |
-| Kubernetes configuration | `k8s/deployment.yaml`, Helm lint in CI #47 |
-| Prometheus/Grafana runtime | `monitoring/`, CI #47 |
-| load smoke | `loadtest/locustfile.py`, CI #47 |
+| Docker runtime | `Dockerfile`, `docker-compose.yml`, CI #53 |
+| Kubernetes configuration | `k8s/deployment.yaml`, Helm lint in CI #53 |
+| Prometheus/Grafana runtime | `monitoring/`, CI #53 |
+| load smoke | `loadtest/locustfile.py`, CI #53 |
 | AI/human verification process | `docs/AI_PROCESS.md` |
 | evidence ledger | `docs/EVIDENCE.md` |
 
