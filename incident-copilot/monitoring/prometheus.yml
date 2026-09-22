@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 5s
+scrape_configs:
+  - job_name: incident-copilot
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["incident-copilot:8000"]
