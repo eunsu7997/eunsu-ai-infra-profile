@@ -22,3 +22,14 @@ def test_connection_refused_is_high():
 def test_unknown_log_is_low():
     r = client.post("/analyze", json={"service":"demo","logs":"application started normally"})
     assert r.json()["severity"] == "LOW"
+
+def test_metrics_exposed():
+    client.post("/analyze", json={"service":"demo","logs":"application started normally"})
+    r = client.get("/metrics")
+    assert r.status_code == 200
+    assert "incident_analyses_total" in r.text
+
+def test_timeout_is_high():
+    r = client.post("/analyze", json={"service":"gateway","logs":"request timed out: deadline exceeded"})
+    assert r.status_code == 200
+    assert r.json()["severity"] == "HIGH"
