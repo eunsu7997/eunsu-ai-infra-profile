@@ -1,0 +1,14 @@
+[
+  {"id":"oom-1","service":"llm-serving","logs":"worker terminated: OOMKilled after CUDA out of memory while loading model weights","expected_severity":"CRITICAL","expected_signal":"memory"},
+  {"id":"oom-2","service":"inference","logs":"RuntimeError: CUDA error: out of memory; pod restarted","expected_severity":"CRITICAL","expected_signal":"memory"},
+  {"id":"backend-1","service":"gateway","logs":"connect() failed: connection refused while connecting to upstream","expected_severity":"HIGH","expected_signal":"connection"},
+  {"id":"backend-2","service":"api","logs":"failed to connect to inference backend on port 8001","expected_severity":"HIGH","expected_signal":"connection"},
+  {"id":"timeout-1","service":"gateway","logs":"request timed out after 30s; deadline exceeded","expected_severity":"HIGH","expected_signal":"timeout"},
+  {"id":"timeout-2","service":"inference","logs":"upstream timeout waiting for model response","expected_severity":"HIGH","expected_signal":"timeout"},
+  {"id":"5xx-1","service":"api","logs":"HTTP 500 Internal Server Error on POST /generate","expected_severity":"MEDIUM","expected_signal":"5xx"},
+  {"id":"disk-1","service":"node","logs":"write failed: no space left on device; disk full","expected_severity":"HIGH","expected_signal":"disk"},
+  {"id":"normal-1","service":"api","logs":"application started normally; health check passed","expected_severity":"LOW","expected_signal":"none"},
+  {"id":"normal-2","service":"worker","logs":"model cache warmed successfully; ready to serve","expected_severity":"LOW","expected_signal":"none"},
+  {"id":"mixed-1","service":"gateway","logs":"HTTP 500 followed by upstream connection refused","expected_severity":"HIGH","expected_signal":"connection"},
+  {"id":"mixed-2","service":"llm-serving","logs":"request timeout then OOMKilled; CUDA out of memory","expected_severity":"CRITICAL","expected_signal":"memory"}
+]
