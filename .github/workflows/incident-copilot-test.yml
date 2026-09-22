@@ -58,7 +58,12 @@ jobs:
           done
           curl -fsS http://127.0.0.1:3000/api/health | tee /tmp/grafana-health.json
           grep -q '"database": "ok"' /tmp/grafana-health.json
-          curl -fsS 'http://127.0.0.1:9090/api/v1/query?query=up%7Bjob%3D%22incident-copilot%22%7D' | tee /tmp/prom-query.json
+          for i in {1..30}; do
+            curl -fsS 'http://127.0.0.1:9090/api/v1/query?query=up%7Bjob%3D%22incident-copilot%22%7D' > /tmp/prom-query.json
+            if grep -q '"value":\[.*,"1"' /tmp/prom-query.json; then break; fi
+            sleep 1
+          done
+          cat /tmp/prom-query.json
           grep -q '"value":\[.*,"1"' /tmp/prom-query.json
       - name: Container logs
         if: always()
