@@ -13,9 +13,9 @@ OpenAI-compatible analyzer는 서비스명과 원시 로그를 입력받아 seve
 AI의 원인 후보와 조치 추천은 자동 실행하지 않습니다. API가 verification 절차를 함께 반환하며, 운영자는 로그·Prometheus metrics·Kubernetes events와 대조한 뒤 조치합니다. 즉 AI는 판단을 돕고, 최종 운영 판단은 증거 기반으로 사람이 수행합니다.
 
 ## SHOW & PROVE
-GitHub Actions CI #47에서 pytest, 8-case severity evaluation, Docker Compose validation, Kubernetes manifest lint, Docker image build/runtime, API smoke, Prometheus/Grafana runtime, Prometheus scrape, Locust load smoke가 모두 성공했습니다.
+GitHub Actions CI #53에서 pytest, 8-case severity evaluation, Docker Compose validation, Kubernetes manifest lint, Docker image build/runtime, API smoke, Prometheus/Grafana runtime, Prometheus scrape, Locust load smoke가 모두 성공했습니다.
 
-최신 load smoke: 10 users / 10 seconds, 299 requests, 0 failures, 약 31.02 req/s, median 2 ms, p95 3 ms. 이는 deterministic analyzer의 API/운영 stack 검증이며 LLM/GPU benchmark로 과장하지 않습니다.
+최신 load smoke: 10 users / 10 seconds, 300 requests, 0 failures, 약 30.79 req/s, median 2 ms, p95 3 ms. 이는 deterministic analyzer의 API/운영 stack 검증이며 LLM/GPU benchmark로 과장하지 않습니다.
 
 ## 실패에서 개선한 과정
 1. Python import failure → working-directory/PYTHONPATH 수정 → tests pass
