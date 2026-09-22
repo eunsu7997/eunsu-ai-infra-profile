@@ -25,6 +25,25 @@ jobs:
         env:
           PYTHONPATH: .
         run: python -m pytest -q
+      - name: Evaluate deterministic incident classifier
+        run: |
+          PYTHONPATH=. python - <<'PY'
+          from app.analyzers import RuleAnalyzer
+          cases = [
+              ("llm","OOMKilled CUDA out of memory","CRITICAL"),
+              ("api","connection refused upstream","HIGH"),
+              ("api","deadline exceeded timeout","HIGH"),
+              ("api","HTTP 500 Internal Server Error","MEDIUM"),
+              ("node","no space left on device disk full","HIGH"),
+              ("api","application started normally","LOW"),
+              ("api","HTTP 500 then connection refused","HIGH"),
+              ("llm","timeout then OOMKilled CUDA out of memory","CRITICAL"),
+          ]
+          analyzer=RuleAnalyzer()
+          results=[analyzer.analyze(service,logs).severity == expected for service,logs,expected in cases]
+          print(f"severity_eval={sum(results)}/{len(results)}")
+          assert all(results)
+          PY
       - name: Validate Docker Compose
         run: docker compose config -q
       - name: Validate Kubernetes manifest
