@@ -40,9 +40,30 @@ jobs:
           curl -fsS -X POST http://127.0.0.1:8000/analyze -H 'Content-Type: application/json' -d '{"service":"gateway","logs":"upstream connection refused"}' | tee /tmp/analyze.json
           grep -q '"severity":"HIGH"' /tmp/analyze.json
           curl -fsSL http://127.0.0.1:8000/metrics/ | grep -q incident_analyses_total
+      - name: Validate monitoring stack
+        run: |
+          docker compose up -d prometheus grafana
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:9090/-/ready; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:9090/-/ready
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:3000/api/health; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:3000/api/health | tee /tmp/grafana-health.json
+          grep -q '"database": "ok"' /tmp/grafana-health.json
+          curl -fsS 'http://127.0.0.1:9090/api/v1/query?query=up%7Bjob%3D%22incident-copilot%22%7D' | tee /tmp/prom-query.json
+          grep -q '"value":\[.*,"1"' /tmp/prom-query.json
       - name: Container logs
         if: always()
-        run: docker logs incident-copilot-ci || true
+        run: |
+          docker logs incident-copilot-ci || true
+          docker compose logs prometheus grafana || true
+      - name: Stop monitoring stack
+        if: always()
+        run: docker compose down -v || true
       - name: Stop container
         if: always()
         run: docker rm -f incident-copilot-ci || true
