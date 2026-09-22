@@ -25,3 +25,24 @@ jobs:
         env:
           PYTHONPATH: .
         run: python -m pytest -q
+      - name: Validate Docker Compose
+        run: docker compose config -q
+      - name: Build application image
+        run: docker build -t incident-copilot:ci .
+      - name: Smoke test container
+        run: |
+          docker run -d --name incident-copilot-ci -p 8000:8000 incident-copilot:ci
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:8000/healthz; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8000/healthz
+          curl -fsS -X POST http://127.0.0.1:8000/analyze -H 'Content-Type: application/json' -d '{"service":"gateway","logs":"upstream connection refused"}' | tee /tmp/analyze.json
+          grep -q '"severity":"HIGH"' /tmp/analyze.json
+          curl -fsSL http://127.0.0.1:8000/metrics/ | grep -q incident_analyses_total
+      - name: Container logs
+        if: always()
+        run: docker logs incident-copilot-ci || true
+      - name: Stop container
+        if: always()
+        run: docker rm -f incident-copilot-ci || true
