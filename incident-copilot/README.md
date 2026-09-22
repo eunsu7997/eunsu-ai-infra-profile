@@ -6,7 +6,7 @@
 
 ## What is proven
 
-최신 증거 기준 GitHub Actions **run #39**에서 아래 검증이 한 번의 pipeline으로 모두 성공했습니다.
+최신 AI 평가 추가 전 기준 GitHub Actions **run #47**에서 아래 검증이 한 번의 pipeline으로 모두 성공했습니다.
 
 - pytest regression tests
 - Docker Compose configuration validation
@@ -16,7 +16,7 @@
 - Prometheus + Grafana runtime startup and scrape verification
 - Locust 10-user / 10-second load smoke test
 
-부하 smoke test 결과: **313 requests, 0 failures, 약 32.35 req/s, median 2 ms, p95 4 ms**. 이 수치는 GitHub-hosted runner의 deterministic mode 결과이며 GPU/LLM 성능 수치가 아닙니다.
+CI #47 부하 smoke test 결과: **299 requests, 0 failures, 약 31.02 req/s, median 2 ms, p95 3 ms**. 이 수치는 GitHub-hosted runner의 deterministic mode 결과이며 GPU/LLM 성능 수치가 아닙니다.
 
 ## Architecture
 
@@ -36,9 +36,25 @@ flowchart LR
  K[Kubernetes Probes] --> B
 ```
 
-## Why AI
+## AI Decision Loop
 
-AI/LLM은 장애 로그를 **severity, signals, likely causes, recommended actions**로 구조화하는 선택적 분석기로 사용합니다. AI의 제안을 자동 실행하지 않고 실제 로그, 메트릭, Kubernetes 이벤트와 대조하도록 verification 절차를 결과에 포함합니다. LLM endpoint 장애 시 deterministic analyzer로 fallback합니다.
+이 프로젝트에서 AI는 장식이 아니라 **비정형 장애 로그 → 운영 판단 후보** 변환을 담당합니다.
+
+```text
+Raw logs
+  ↓
+OpenAI-compatible analyzer
+  ↓
+severity + signals + likely causes + recommended actions
+  ↓
+verification checklist
+  ↓
+Human checks logs / metrics / Kubernetes events
+  ↓
+action or correction
+```
+
+LLM success path는 OpenAI-compatible JSON 응답을 모사해 parsing, structured output, analyzer mode, human-verification contract를 자동 테스트합니다. endpoint failure path 역시 강제로 재현해 deterministic analyzer fallback을 검증합니다. **실제 모델 추론과 protocol-level adapter 검증은 구분해 표기합니다.**
 
 ## Reproduce
 
@@ -97,7 +113,7 @@ uvicorn app.main:app --port 8000
 1. Python import 실패 -> workflow working directory/PYTHONPATH 수정 -> CI 성공
 2. Docker 8000 port collision -> smoke container lifecycle 수정 -> 재검증
 3. Prometheus 첫 scrape 전 조회 race -> polling 후 `up=1` 검증 -> 재검증
-4. 최종 run #39 -> test, Docker, K8s lint, monitoring, load smoke 전 단계 success
+4. CI #47 -> 8-case severity evaluation 8/8 + test, Docker, K8s lint, monitoring, load smoke 전 단계 success
 
 자세한 기록: [docs/EVIDENCE.md](docs/EVIDENCE.md)
 
@@ -108,10 +124,10 @@ uvicorn app.main:app --port 8000
 | Structured incident API | `app/main.py` |
 | deterministic + LLM adapter/fallback | `app/analyzers.py` |
 | regression tests | `tests/test_api.py` |
-| Docker runtime | `Dockerfile`, `docker-compose.yml`, CI #39 |
-| Kubernetes configuration | `k8s/deployment.yaml`, Helm lint in CI #39 |
-| Prometheus/Grafana runtime | `monitoring/`, CI #39 |
-| load smoke | `loadtest/locustfile.py`, CI #39 |
+| Docker runtime | `Dockerfile`, `docker-compose.yml`, CI #47 |
+| Kubernetes configuration | `k8s/deployment.yaml`, Helm lint in CI #47 |
+| Prometheus/Grafana runtime | `monitoring/`, CI #47 |
+| load smoke | `loadtest/locustfile.py`, CI #47 |
 | AI/human verification process | `docs/AI_PROCESS.md` |
 | evidence ledger | `docs/EVIDENCE.md` |
 
