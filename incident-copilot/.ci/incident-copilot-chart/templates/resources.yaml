@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: incident-copilot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: incident-copilot
+  template:
+    metadata:
+      labels:
+        app: incident-copilot
+    spec:
+      containers:
+        - name: api
+          image: incident-copilot:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          startupProbe:
+            httpGet: {path: /healthz, port: 8000}
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: {path: /readyz, port: 8000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /healthz, port: 8000}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: "100m", memory: "128Mi"}
+            limits: {cpu: "500m", memory: "256Mi"}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: incident-copilot
+spec:
+  selector:
+    app: incident-copilot
+  ports:
+    - port: 80
+      targetPort: 8000
