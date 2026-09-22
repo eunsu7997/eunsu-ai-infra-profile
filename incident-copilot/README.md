@@ -1,31 +1,37 @@
 # AI Incident Copilot
 
-운영 로그를 입력하면 장애 신호를 분류하고 **원인 후보 → 조치 → 검증 절차**를 구조화해 주는 AI 인프라 포트폴리오 프로젝트입니다.
+> **장애 로그를 AI와 함께 분석해 원인 후보 → 조치 순서 → 검증 절차로 바꾸는 AI Infrastructure 운영 도구**
 
-> 현재 v0.1은 외부 API 키 없이 재현 가능한 **deterministic demo**입니다. 실제 LLM이 분석했다고 과장하지 않습니다. 다음 단계에서 LLM adapter를 연결하되, 운영 변경은 항상 사람이 검증하도록 설계합니다.
+운영 장애에서 중요한 것은 로그를 요약하는 것보다 **어디부터 확인해야 하는지** 빠르게 구조화하는 일이라고 보았습니다. 이 프로젝트는 FastAPI 기반 incident triage API에 재현 가능한 rule analyzer와 선택적 OpenAI-compatible LLM adapter를 결합합니다.
 
-## Why
+## 핵심 원칙
 
-ITS 유지보수 현장에서는 장애를 발견하는 것보다 "어디부터 확인해야 하는가"를 빠르게 정리하는 일이 중요했습니다. 이 경험을 AI Infrastructure 학습과 연결해, 로그를 받으면 조사 순서를 구조화하는 작은 운영 도구를 만들었습니다.
+- **SHOW**: API, 테스트, Docker, Kubernetes, metrics, dashboard 구성을 공개합니다.
+- **PROVE**: 실행한 것과 아직 실행하지 않은 것을 `docs/VALIDATION.md`에서 분리합니다.
+- **Human in the loop**: AI의 원인/조치 제안을 자동 실행하지 않고 로그·메트릭·이벤트와 대조합니다.
+- **Reproducible**: API key 없이도 deterministic mode로 핵심 흐름을 재현할 수 있습니다.
 
 ## Architecture
 
-```text
-Operator / Log
-      |
-      v
- FastAPI Gateway
-      |
-      +--> Incident rule engine (v0.1 reproducible demo)
-      |
-      +--> /metrics (Prometheus format)
-      |
-      +--> healthz / readyz
+```mermaid
+flowchart LR
+ A[Incident Log] --> B[FastAPI]
+ B --> C{Analyzer}
+ C --> D[Rule Analyzer]
+ C --> E[OpenAI-compatible LLM]
+ E -->|failure| D
+ D --> F[Incident Report]
+ E --> F
+ F --> G[Human Verification]
+ B --> H[Prometheus Metrics]
+ H --> I[Prometheus]
+ I --> J[Grafana]
+ K[Kubernetes Probes] --> B
 ```
 
-Kubernetes에서는 startup/readiness/liveness probe와 resource request/limit을 정의했습니다.
+자세한 설명: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
-## Run
+## Quick start
 
 ```bash
 cd incident-copilot
@@ -33,32 +39,42 @@ python -m venv .venv
 # Windows: .venv\Scripts\activate
 # Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
+pytest -q
 uvicorn app.main:app --reload
 ```
 
-다른 터미널에서:
-
 ```bash
 curl -X POST http://127.0.0.1:8000/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"service":"llm-serving","logs":"Pod terminated: OOMKilled. CUDA out of memory"}'
+ -H "Content-Type: application/json" \
+ -d '{"service":"llm-serving","logs":"Pod terminated: OOMKilled. CUDA out of memory"}'
 ```
 
-예상 핵심 결과: `severity=CRITICAL`, OOM 신호/원인 후보/조치/검증 절차.
+## Optional LLM mode
 
-## Test
+vLLM 등 OpenAI-compatible endpoint가 준비된 경우에만 사용합니다.
 
 ```bash
-pytest -q
+export ANALYZER_MODE=openai-compatible
+export LLM_BASE_URL=http://localhost:8001/v1
+export LLM_MODEL=<your-model>
+export LLM_API_KEY=EMPTY
+uvicorn app.main:app --port 8000
 ```
 
-테스트는 health/readiness, OOM, connection refused, 정상 로그 경로를 확인합니다. GitHub Actions에서도 동일 테스트를 실행하도록 구성했습니다.
+Endpoint 호출 실패 시 deterministic analyzer로 fallback합니다.
 
-## Container
+## Docker + Observability
 
 ```bash
 docker compose up --build
 ```
+
+- API: localhost:8000
+- Prometheus: localhost:9090
+- Grafana: localhost:3000
+- Metrics: localhost:8000/metrics
+
+Grafana datasource와 dashboard는 자동 provisioning하도록 저장소에 포함했습니다.
 
 ## Kubernetes
 
@@ -67,31 +83,49 @@ kubectl apply -f k8s/deployment.yaml
 kubectl port-forward svc/incident-copilot 8000:80
 ```
 
-로컬 이미지 사용 시 kind/minikube 환경에 이미지를 먼저 로드해야 합니다.
+startup/readiness/liveness probe와 CPU/memory requests/limits를 정의합니다. 실제 클러스터 실행 증거가 없는 상태에서는 배포 완료라고 주장하지 않습니다.
 
-## Observability
+## Failure scenarios
 
-`/metrics`에서 Prometheus 형식으로 다음 애플리케이션 지표를 노출합니다.
+| Scenario | Sample | Expected |
+|---|---|---|
+| GPU/Pod OOM | `samples/oom.log` | CRITICAL |
+| Backend down | `samples/backend-down.log` | HIGH |
+| Overload | `samples/overload.log` | HIGH |
 
-- `incident_analyses_total{severity=...}`
-- `incident_analysis_seconds`
+## Load test
 
-## SHOW & PROVE
+```bash
+locust -f loadtest/locustfile.py --host http://127.0.0.1:8000
+```
 
-| 주장 | 확인 방법 |
+수치는 실제 실행 후에만 기록합니다.
+
+## Evidence map
+
+| 주장 | 코드/증거 |
 |---|---|
-| API가 살아 있다 | `GET /healthz` |
-| 트래픽 수신 준비 | `GET /readyz` |
-| OOM 분류 | 테스트 또는 `POST /analyze` |
-| 관측 가능 | `GET /metrics` |
-| 컨테이너화 | `Dockerfile`, `docker-compose.yml` |
-| K8s 운영 기본기 | probes + resources YAML |
-| 회귀 방지 | pytest + GitHub Actions |
+| API와 구조화 결과 | `app/main.py` |
+| 재현 가능한 분석 | `app/analyzers.py` |
+| LLM 확장 + fallback | `OpenAICompatibleAnalyzer` |
+| 회귀 테스트 | `tests/test_api.py` + GitHub Actions |
+| 컨테이너/관측성 | `Dockerfile`, `docker-compose.yml`, `monitoring/` |
+| K8s 운영 기본기 | `k8s/deployment.yaml` |
+| 장애 실험 입력 | `samples/` |
+| AI 활용과 인간 판단 | `docs/AI_PROCESS.md` |
+| 검증 범위 | `docs/VALIDATION.md` |
 
-## AI 활용 원칙
+## AI를 어떻게 사용했나
 
-AI는 설계·코드 초안·테스트 케이스·문서 검토에 활용합니다. 하지만 **실행 결과와 실제 구현 범위를 분리해 기록**하고, 생성된 조치안을 운영 환경에 자동 적용하지 않습니다.
+AI를 코드 생성기로만 사용하지 않고 설계 검토, 실패 시나리오 생성, 테스트 초안, 누락 점검에 사용했습니다. 실제로 초기 CI workflow 위치가 잘못되어 실행되지 않는 문제를 발견했고, 저장소 루트 `.github/workflows/`로 수정했습니다. **AI 결과도 실행 여부를 확인하고 틀리면 수정한다**는 원칙을 프로젝트 문서에 남겼습니다.
 
-## Next
+## 현재 검증 상태
 
-v0.2: LLM adapter(vLLM/OpenAI-compatible endpoint), 구조화 출력 검증, Prometheus/Grafana 대시보드, 장애 시나리오 실험 기록.
+실제 GPU/vLLM end-to-end, Kubernetes cluster, Grafana 화면, 부하테스트 수치는 아직 실제 실행 증거가 없으므로 완료로 표시하지 않습니다. 자세한 상태는 [docs/VALIDATION.md](docs/VALIDATION.md)를 기준으로 합니다.
+
+## Portfolio docs
+
+- [AI-assisted problem solving](docs/AI_PROCESS.md)
+- [Validation record](docs/VALIDATION.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Submission copy](docs/SUBMISSION.md)
