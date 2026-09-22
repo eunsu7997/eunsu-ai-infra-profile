@@ -4,9 +4,11 @@ on:
     branches: ["sk-hynix-portfolio"]
     paths:
       - "incident-copilot/**"
+      - ".github/workflows/incident-copilot-test.yml"
   pull_request:
     paths:
       - "incident-copilot/**"
+      - ".github/workflows/incident-copilot-test.yml"
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -19,4 +21,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - run: pytest -q
+      - name: Run tests
+        env:
+          PYTHONPATH: .
+        run: python -m pytest -q
