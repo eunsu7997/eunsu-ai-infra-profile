@@ -53,3 +53,32 @@ def test_llm_endpoint_failure_falls_back(monkeypatch):
     assert body["severity"] == "CRITICAL"
     assert body["mode"] == "deterministic-demo"
     assert "fallback" in body["summary"]
+
+
+def test_llm_success_path_uses_structured_ai_output(monkeypatch):
+    monkeypatch.setenv("ANALYZER_MODE", "openai-compatible")
+    monkeypatch.setenv("LLM_BASE_URL", "http://llm.test/v1")
+    monkeypatch.setenv("LLM_MODEL", "incident-model")
+
+    class FakeResponse:
+        def __enter__(self): return self
+        def __exit__(self, *args): return False
+        def read(self):
+            import json
+            content = {
+                "severity": "CRITICAL",
+                "summary": "GPU memory exhaustion is a likely cause; verify before action.",
+                "signals": ["CUDA out of memory", "OOMKilled"],
+                "likely_causes": ["GPU memory pressure"],
+                "recommended_actions": ["check GPU memory metrics", "inspect pod events"]
+            }
+            return json.dumps({"choices":[{"message":{"content":json.dumps(content)}}]}).encode()
+
+    monkeypatch.setattr(analyzers.urllib.request, "urlopen", lambda *a, **k: FakeResponse())
+    r = client.post("/analyze", json={"service":"llm-serving","logs":"CUDA out of memory"})
+    body = r.json()
+    assert r.status_code == 200
+    assert body["mode"] == "openai-compatible"
+    assert body["severity"] == "CRITICAL"
+    assert "GPU memory" in body["summary"]
+    assert body["verification"]
