@@ -1,0 +1,5 @@
+services:
+  incident-copilot:
+    build: .
+    ports:
+      - "8000:8000"
