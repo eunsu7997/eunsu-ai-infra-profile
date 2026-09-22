@@ -40,6 +40,7 @@ jobs:
           curl -fsS -X POST http://127.0.0.1:8000/analyze -H 'Content-Type: application/json' -d '{"service":"gateway","logs":"upstream connection refused"}' | tee /tmp/analyze.json
           grep -q '"severity":"HIGH"' /tmp/analyze.json
           curl -fsSL http://127.0.0.1:8000/metrics/ | grep -q incident_analyses_total
+          docker rm -f incident-copilot-ci
       - name: Validate monitoring stack
         run: |
           docker compose up -d prometheus grafana
