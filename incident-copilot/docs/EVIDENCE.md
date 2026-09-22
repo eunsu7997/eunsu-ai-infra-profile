@@ -1,43 +1,63 @@
 # Evidence ledger
 
-이 문서는 **실행 증거가 확인된 항목만 완료로 올리기 위한 장부**입니다.
+완료 표시는 **실제 실행 결과가 확인된 항목에만** 사용합니다.
 
-## 자동 검증에서 확인된 항목
+## Final automated validation
 
-- Python dependencies 설치
-- pytest API regression tests
-- Docker Compose configuration validation
+GitHub Actions **run #39**: `conclusion=success`
+
+검증 단계:
+- Python dependencies installation
+- pytest regression tests
+- Docker Compose config validation
 - Kubernetes manifest Helm lint
 - Docker image build
 - Docker container boot
 - `GET /healthz`
-- `POST /analyze` 장애 판정
-- Prometheus metric endpoint
-- Prometheus/Grafana runtime 검증 workflow
-- Locust reproducible load smoke test workflow
+- `POST /analyze` semantic assertion
+- Prometheus metrics endpoint
+- Prometheus + Grafana runtime
+- Prometheus target scrape `up=1`
+- Locust load smoke test
 
-## 실패 → 수정 기록
+## Load smoke result
 
-### CI #18 — Python import 실패
-`ModuleNotFoundError: app`을 확인했습니다. workflow에서 `PYTHONPATH=.`과 `python -m pytest`를 사용하도록 수정했습니다.
+Environment: GitHub-hosted runner, deterministic analyzer, 10 users, 10 seconds.
 
-### CI #26 — Docker port collision
-smoke-test container가 8000 포트를 점유한 채 monitoring stack을 시작해 Compose가 실패했습니다. smoke test 직후 컨테이너를 제거하도록 lifecycle을 수정했습니다.
+- Requests: 313
+- Failures: 0 (0.00%)
+- Throughput: ~32.35 requests/s
+- Median: 2 ms
+- p95: 4 ms
+- Observed max: ~33 ms
 
-### CI #32 — Prometheus 첫 scrape race
-Prometheus와 Grafana는 정상 기동했지만 첫 scrape 전에 `up`을 조회해 빈 vector가 반환됐습니다. 최대 30초 polling 후 `up=1`을 검증하도록 수정했습니다.
+이 결과는 LLM/GPU inference benchmark가 아니라 **API 및 운영 stack의 재현 가능한 smoke-load 증거**입니다.
 
-## 완료 판정 규칙
+## Failure -> root cause -> correction
 
-workflow에 단계가 존재하는 것만으로 완료라고 하지 않습니다. 해당 commit의 GitHub Actions run이 `conclusion=success`여야 완료입니다.
+### Python import failure
+Symptom: `ModuleNotFoundError: app`.
+Correction: workflow working directory를 `incident-copilot`로 고정하고 `PYTHONPATH=.`, `python -m pytest`를 사용했습니다.
+Result: regression tests success.
 
-## 별도 환경이 필요한 증거
+### Docker port collision
+Symptom: monitoring Compose가 `Bind for 0.0.0.0:8000 failed: port is already allocated`로 실패했습니다.
+Root cause: 앞 smoke-test container가 8000 포트를 점유했습니다.
+Correction: smoke 검증 직후 container를 제거해 포트를 반환했습니다.
 
-다음은 CI 성공과 별개로 실제 환경 증거가 필요합니다.
+### Prometheus first-scrape race
+Symptom: Prometheus/Grafana는 정상 기동했지만 query 결과가 empty vector였습니다.
+Root cause: 첫 scrape 전에 `up{job="incident-copilot"}`을 조회했습니다.
+Correction: 최대 30초 polling 후 `up=1`을 assert하도록 변경했습니다.
 
-- 실제 OpenAI-compatible/vLLM endpoint E2E
-- NVIDIA GPU 할당/모델 로딩
-- 실제 Kubernetes cluster에서 probe 동작 캡처
-- 실제 Grafana dashboard 화면 캡처/GIF
+### Final result
+run #39에서 test, Docker, Kubernetes lint, monitoring runtime, load smoke가 모두 success였습니다.
 
-이 항목들은 증거가 생기기 전에는 포트폴리오에서 완료로 표현하지 않습니다.
+## Not claimed yet
+
+- real OpenAI-compatible/vLLM endpoint E2E
+- NVIDIA GPU allocation/model loading
+- real Kubernetes cluster probe behavior capture
+- GPU/LLM latency or throughput benchmark
+
+증거가 없는 항목을 제출 자료에서 완료로 표현하지 않습니다.
