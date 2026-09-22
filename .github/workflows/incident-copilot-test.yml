@@ -65,6 +65,11 @@ jobs:
           done
           cat /tmp/prom-query.json
           grep -q '"value":\[.*,"1"' /tmp/prom-query.json
+      - name: Run reproducible load smoke test
+        run: |
+          locust -f loadtest/locustfile.py --headless -u 10 -r 5 -t 10s --host http://127.0.0.1:8000 --csv /tmp/incident-load --only-summary
+          test -f /tmp/incident-load_stats.csv
+          cat /tmp/incident-load_stats.csv
       - name: Container logs
         if: always()
         run: |
