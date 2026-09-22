@@ -11,7 +11,9 @@ class IncidentUser(HttpUser):
 
     @task
     def analyze(self):
-        for sample in SAMPLES:
-            with self.client.post("/analyze", json=sample, catch_response=True) as response:
-                if response.status_code != 200:
-                    response.failure(f"HTTP {response.status_code}")
+        sample = SAMPLES[self.environment.runner.user_count % len(SAMPLES)] if self.environment.runner else SAMPLES[0]
+        with self.client.post("/analyze", json=sample, catch_response=True) as response:
+            if response.status_code != 200:
+                response.failure(f"HTTP {response.status_code}")
+            elif response.json().get("severity") not in {"HIGH", "CRITICAL"}:
+                response.failure("unexpected severity")
