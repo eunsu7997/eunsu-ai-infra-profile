@@ -1,0 +1,395 @@
+{
+  "analyzer": "RuleAnalyzer",
+  "dataset": "eval/incidents.json",
+  "total_cases": 20,
+  "severity_correct": 13,
+  "severity_accuracy": 0.65,
+  "results": [
+    {
+      "id": "oom-1",
+      "case_type": "explicit",
+      "expected_severity": "CRITICAL",
+      "actual_severity": "CRITICAL",
+      "severity_correct": true,
+      "expected_signal": "memory",
+      "actual_signals": [
+        "메모리 고갈/OOM 신호"
+      ],
+      "summary": "llm-serving 로그에서 메모리 고갈/OOM 신호을 감지했습니다.",
+      "likely_causes": [
+        "컨테이너 또는 GPU 메모리 한도 초과"
+      ],
+      "recommended_actions": [
+        "최근 메모리 사용량과 OOMKilled 이벤트를 확인하고 요청량/모델 크기/limit을 조정"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "oom-2",
+      "case_type": "explicit",
+      "expected_severity": "CRITICAL",
+      "actual_severity": "CRITICAL",
+      "severity_correct": true,
+      "expected_signal": "memory",
+      "actual_signals": [
+        "메모리 고갈/OOM 신호"
+      ],
+      "summary": "inference 로그에서 메모리 고갈/OOM 신호을 감지했습니다.",
+      "likely_causes": [
+        "컨테이너 또는 GPU 메모리 한도 초과"
+      ],
+      "recommended_actions": [
+        "최근 메모리 사용량과 OOMKilled 이벤트를 확인하고 요청량/모델 크기/limit을 조정"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "backend-1",
+      "case_type": "explicit",
+      "expected_severity": "HIGH",
+      "actual_severity": "HIGH",
+      "severity_correct": true,
+      "expected_signal": "connection",
+      "actual_signals": [
+        "백엔드 연결 거부"
+      ],
+      "summary": "gateway 로그에서 백엔드 연결 거부을 감지했습니다.",
+      "likely_causes": [
+        "백엔드 프로세스 중단, 잘못된 포트 또는 Service endpoint 부재"
+      ],
+      "recommended_actions": [
+        "백엔드 Pod/프로세스, 포트, Service endpoint와 readiness 상태를 순서대로 확인"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "backend-2",
+      "case_type": "explicit",
+      "expected_severity": "HIGH",
+      "actual_severity": "HIGH",
+      "severity_correct": true,
+      "expected_signal": "connection",
+      "actual_signals": [
+        "백엔드 연결 거부"
+      ],
+      "summary": "api 로그에서 백엔드 연결 거부을 감지했습니다.",
+      "likely_causes": [
+        "백엔드 프로세스 중단, 잘못된 포트 또는 Service endpoint 부재"
+      ],
+      "recommended_actions": [
+        "백엔드 Pod/프로세스, 포트, Service endpoint와 readiness 상태를 순서대로 확인"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "timeout-1",
+      "case_type": "explicit",
+      "expected_severity": "HIGH",
+      "actual_severity": "HIGH",
+      "severity_correct": true,
+      "expected_signal": "timeout",
+      "actual_signals": [
+        "요청 시간 초과"
+      ],
+      "summary": "gateway 로그에서 요청 시간 초과을 감지했습니다.",
+      "likely_causes": [
+        "과부하, 느린 의존 서비스 또는 네트워크 지연"
+      ],
+      "recommended_actions": [
+        "지연시간과 큐 길이를 확인하고 의존 서비스 상태 및 timeout 설정을 검토"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "timeout-2",
+      "case_type": "explicit",
+      "expected_severity": "HIGH",
+      "actual_severity": "HIGH",
+      "severity_correct": true,
+      "expected_signal": "timeout",
+      "actual_signals": [
+        "요청 시간 초과"
+      ],
+      "summary": "inference 로그에서 요청 시간 초과을 감지했습니다.",
+      "likely_causes": [
+        "과부하, 느린 의존 서비스 또는 네트워크 지연"
+      ],
+      "recommended_actions": [
+        "지연시간과 큐 길이를 확인하고 의존 서비스 상태 및 timeout 설정을 검토"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "5xx-1",
+      "case_type": "explicit",
+      "expected_severity": "MEDIUM",
+      "actual_severity": "MEDIUM",
+      "severity_correct": true,
+      "expected_signal": "5xx",
+      "actual_signals": [
+        "5xx 오류"
+      ],
+      "summary": "api 로그에서 5xx 오류을 감지했습니다.",
+      "likely_causes": [
+        "애플리케이션 예외 또는 의존 서비스 실패"
+      ],
+      "recommended_actions": [
+        "오류 직전 로그와 trace/request id를 확인하고 실패한 의존성을 분리"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "disk-1",
+      "case_type": "explicit",
+      "expected_severity": "HIGH",
+      "actual_severity": "HIGH",
+      "severity_correct": true,
+      "expected_signal": "disk",
+      "actual_signals": [
+        "디스크 공간 부족"
+      ],
+      "summary": "node 로그에서 디스크 공간 부족을 감지했습니다.",
+      "likely_causes": [
+        "로그/캐시/이미지 누적으로 가용 공간 소진"
+      ],
+      "recommended_actions": [
+        "파일시스템 사용량을 확인하고 안전한 정리 후 보존 정책을 점검"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "normal-1",
+      "case_type": "explicit",
+      "expected_severity": "LOW",
+      "actual_severity": "LOW",
+      "severity_correct": true,
+      "expected_signal": "none",
+      "actual_signals": [
+        "정의된 주요 장애 패턴 없음"
+      ],
+      "summary": "api 로그에서 사전 정의된 주요 장애 패턴을 찾지 못했습니다.",
+      "likely_causes": [
+        "현재 로그만으로 특정 원인을 확정하기 어려움"
+      ],
+      "recommended_actions": [
+        "추가 로그, 메트릭, 최근 배포 변경사항을 함께 확인"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "normal-2",
+      "case_type": "explicit",
+      "expected_severity": "LOW",
+      "actual_severity": "LOW",
+      "severity_correct": true,
+      "expected_signal": "none",
+      "actual_signals": [
+        "정의된 주요 장애 패턴 없음"
+      ],
+      "summary": "worker 로그에서 사전 정의된 주요 장애 패턴을 찾지 못했습니다.",
+      "likely_causes": [
+        "현재 로그만으로 특정 원인을 확정하기 어려움"
+      ],
+      "recommended_actions": [
+        "추가 로그, 메트릭, 최근 배포 변경사항을 함께 확인"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "mixed-1",
+      "case_type": "explicit",
+      "expected_severity": "HIGH",
+      "actual_severity": "HIGH",
+      "severity_correct": true,
+      "expected_signal": "connection",
+      "actual_signals": [
+        "백엔드 연결 거부",
+        "5xx 오류"
+      ],
+      "summary": "gateway 로그에서 백엔드 연결 거부, 5xx 오류을 감지했습니다.",
+      "likely_causes": [
+        "백엔드 프로세스 중단, 잘못된 포트 또는 Service endpoint 부재",
+        "애플리케이션 예외 또는 의존 서비스 실패"
+      ],
+      "recommended_actions": [
+        "백엔드 Pod/프로세스, 포트, Service endpoint와 readiness 상태를 순서대로 확인",
+        "오류 직전 로그와 trace/request id를 확인하고 실패한 의존성을 분리"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "mixed-2",
+      "case_type": "explicit",
+      "expected_severity": "CRITICAL",
+      "actual_severity": "CRITICAL",
+      "severity_correct": true,
+      "expected_signal": "memory",
+      "actual_signals": [
+        "메모리 고갈/OOM 신호",
+        "요청 시간 초과"
+      ],
+      "summary": "llm-serving 로그에서 메모리 고갈/OOM 신호, 요청 시간 초과을 감지했습니다.",
+      "likely_causes": [
+        "컨테이너 또는 GPU 메모리 한도 초과",
+        "과부하, 느린 의존 서비스 또는 네트워크 지연"
+      ],
+      "recommended_actions": [
+        "최근 메모리 사용량과 OOMKilled 이벤트를 확인하고 요청량/모델 크기/limit을 조정",
+        "지연시간과 큐 길이를 확인하고 의존 서비스 상태 및 timeout 설정을 검토"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "semantic-memory-1",
+      "case_type": "semantic",
+      "expected_severity": "CRITICAL",
+      "actual_severity": "LOW",
+      "severity_correct": false,
+      "expected_signal": "memory",
+      "actual_signals": [
+        "정의된 주요 장애 패턴 없음"
+      ],
+      "summary": "llm-serving 로그에서 사전 정의된 주요 장애 패턴을 찾지 못했습니다.",
+      "likely_causes": [
+        "현재 로그만으로 특정 원인을 확정하기 어려움"
+      ],
+      "recommended_actions": [
+        "추가 로그, 메트릭, 최근 배포 변경사항을 함께 확인"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "semantic-memory-2",
+      "case_type": "semantic",
+      "expected_severity": "CRITICAL",
+      "actual_severity": "LOW",
+      "severity_correct": false,
+      "expected_signal": "memory",
+      "actual_signals": [
+        "정의된 주요 장애 패턴 없음"
+      ],
+      "summary": "inference 로그에서 사전 정의된 주요 장애 패턴을 찾지 못했습니다.",
+      "likely_causes": [
+        "현재 로그만으로 특정 원인을 확정하기 어려움"
+      ],
+      "recommended_actions": [
+        "추가 로그, 메트릭, 최근 배포 변경사항을 함께 확인"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "semantic-connection-1",
+      "case_type": "semantic",
+      "expected_severity": "HIGH",
+      "actual_severity": "LOW",
+      "severity_correct": false,
+      "expected_signal": "connection",
+      "actual_signals": [
+        "정의된 주요 장애 패턴 없음"
+      ],
+      "summary": "gateway 로그에서 사전 정의된 주요 장애 패턴을 찾지 못했습니다.",
+      "likely_causes": [
+        "현재 로그만으로 특정 원인을 확정하기 어려움"
+      ],
+      "recommended_actions": [
+        "추가 로그, 메트릭, 최근 배포 변경사항을 함께 확인"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "semantic-timeout-1",
+      "case_type": "semantic",
+      "expected_severity": "HIGH",
+      "actual_severity": "LOW",
+      "severity_correct": false,
+      "expected_signal": "timeout",
+      "actual_signals": [
+        "정의된 주요 장애 패턴 없음"
+      ],
+      "summary": "gateway 로그에서 사전 정의된 주요 장애 패턴을 찾지 못했습니다.",
+      "likely_causes": [
+        "현재 로그만으로 특정 원인을 확정하기 어려움"
+      ],
+      "recommended_actions": [
+        "추가 로그, 메트릭, 최근 배포 변경사항을 함께 확인"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "semantic-disk-1",
+      "case_type": "semantic",
+      "expected_severity": "HIGH",
+      "actual_severity": "LOW",
+      "severity_correct": false,
+      "expected_signal": "disk",
+      "actual_signals": [
+        "정의된 주요 장애 패턴 없음"
+      ],
+      "summary": "node 로그에서 사전 정의된 주요 장애 패턴을 찾지 못했습니다.",
+      "likely_causes": [
+        "현재 로그만으로 특정 원인을 확정하기 어려움"
+      ],
+      "recommended_actions": [
+        "추가 로그, 메트릭, 최근 배포 변경사항을 함께 확인"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "semantic-5xx-1",
+      "case_type": "semantic",
+      "expected_severity": "MEDIUM",
+      "actual_severity": "LOW",
+      "severity_correct": false,
+      "expected_signal": "5xx",
+      "actual_signals": [
+        "정의된 주요 장애 패턴 없음"
+      ],
+      "summary": "api 로그에서 사전 정의된 주요 장애 패턴을 찾지 못했습니다.",
+      "likely_causes": [
+        "현재 로그만으로 특정 원인을 확정하기 어려움"
+      ],
+      "recommended_actions": [
+        "추가 로그, 메트릭, 최근 배포 변경사항을 함께 확인"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "semantic-normal-1",
+      "case_type": "semantic",
+      "expected_severity": "LOW",
+      "actual_severity": "LOW",
+      "severity_correct": true,
+      "expected_signal": "none",
+      "actual_signals": [
+        "정의된 주요 장애 패턴 없음"
+      ],
+      "summary": "api 로그에서 사전 정의된 주요 장애 패턴을 찾지 못했습니다.",
+      "likely_causes": [
+        "현재 로그만으로 특정 원인을 확정하기 어려움"
+      ],
+      "recommended_actions": [
+        "추가 로그, 메트릭, 최근 배포 변경사항을 함께 확인"
+      ],
+      "mode": "deterministic-demo"
+    },
+    {
+      "id": "semantic-mixed-1",
+      "case_type": "semantic",
+      "expected_severity": "CRITICAL",
+      "actual_severity": "LOW",
+      "severity_correct": false,
+      "expected_signal": "memory",
+      "actual_signals": [
+        "정의된 주요 장애 패턴 없음"
+      ],
+      "summary": "llm-serving 로그에서 사전 정의된 주요 장애 패턴을 찾지 못했습니다.",
+      "likely_causes": [
+        "현재 로그만으로 특정 원인을 확정하기 어려움"
+      ],
+      "recommended_actions": [
+        "추가 로그, 메트릭, 최근 배포 변경사항을 함께 확인"
+      ],
+      "mode": "deterministic-demo"
+    }
+  ]
+}
