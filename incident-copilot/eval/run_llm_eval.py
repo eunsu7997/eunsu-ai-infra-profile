@@ -15,14 +15,16 @@ DATASET = ROOT / "eval" / "incidents.json"
 RESULT_DIR = ROOT / "eval" / "results"
 RESULT_PATH = RESULT_DIR / "llm_eval.json"
 
-DEFAULT_BASE_URL = "http://localhost:11434/v1"
-DEFAULT_MODEL = "qwen2.5:3b"
+DEFAULT_BASE_URL = "http://localhost:8001/v1"
 
 
 def main() -> None:
     os.environ.setdefault("LLM_BASE_URL", DEFAULT_BASE_URL)
-    os.environ.setdefault("LLM_MODEL", DEFAULT_MODEL)
     os.environ.setdefault("LLM_API_KEY", "EMPTY")
+    if not os.getenv("LLM_MODEL"):
+        raise SystemExit(
+            "LLM_MODEL is required. Set it to the exact model served by vLLM."
+        )
 
     cases = json.loads(DATASET.read_text(encoding="utf-8"))
     analyzer = OpenAICompatibleAnalyzer()
