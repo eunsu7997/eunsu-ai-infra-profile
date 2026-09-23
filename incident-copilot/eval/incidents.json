@@ -1,0 +1,23 @@
+[
+  {"id":"oom-1","service":"llm-serving","logs":"worker terminated: OOMKilled after CUDA out of memory while loading model weights","expected_severity":"CRITICAL","expected_signal":"memory","case_type":"explicit"},
+  {"id":"oom-2","service":"inference","logs":"RuntimeError: CUDA error: out of memory; pod restarted","expected_severity":"CRITICAL","expected_signal":"memory","case_type":"explicit"},
+  {"id":"backend-1","service":"gateway","logs":"connect() failed: connection refused while connecting to upstream","expected_severity":"HIGH","expected_signal":"connection","case_type":"explicit"},
+  {"id":"backend-2","service":"api","logs":"failed to connect to inference backend on port 8001","expected_severity":"HIGH","expected_signal":"connection","case_type":"explicit"},
+  {"id":"timeout-1","service":"gateway","logs":"request timed out after 30s; deadline exceeded","expected_severity":"HIGH","expected_signal":"timeout","case_type":"explicit"},
+  {"id":"timeout-2","service":"inference","logs":"upstream timeout waiting for model response","expected_severity":"HIGH","expected_signal":"timeout","case_type":"explicit"},
+  {"id":"5xx-1","service":"api","logs":"HTTP 500 Internal Server Error on POST /generate","expected_severity":"MEDIUM","expected_signal":"5xx","case_type":"explicit"},
+  {"id":"disk-1","service":"node","logs":"write failed: no space left on device; disk full","expected_severity":"HIGH","expected_signal":"disk","case_type":"explicit"},
+  {"id":"normal-1","service":"api","logs":"application started normally; health check passed","expected_severity":"LOW","expected_signal":"none","case_type":"explicit"},
+  {"id":"normal-2","service":"worker","logs":"model cache warmed successfully; ready to serve","expected_severity":"LOW","expected_signal":"none","case_type":"explicit"},
+  {"id":"mixed-1","service":"gateway","logs":"HTTP 500 followed by upstream connection refused","expected_severity":"HIGH","expected_signal":"connection","case_type":"explicit"},
+  {"id":"mixed-2","service":"llm-serving","logs":"request timeout then OOMKilled; CUDA out of memory","expected_severity":"CRITICAL","expected_signal":"memory","case_type":"explicit"},
+
+  {"id":"semantic-memory-1","service":"llm-serving","logs":"model load failed when device 0 tried to reserve 12 GiB while only 220 MiB remained available; worker exited during weight initialization","expected_severity":"CRITICAL","expected_signal":"memory","case_type":"semantic"},
+  {"id":"semantic-memory-2","service":"inference","logs":"container ended with exit code 137 after resident usage climbed to the pod limit; the replacement pod started immediately","expected_severity":"CRITICAL","expected_signal":"memory","case_type":"semantic"},
+  {"id":"semantic-connection-1","service":"gateway","logs":"five TCP attempts to inference:8001 were answered with RST packets and no application response was established","expected_severity":"HIGH","expected_signal":"connection","case_type":"semantic"},
+  {"id":"semantic-timeout-1","service":"gateway","logs":"request entered the upstream queue at 10:14:02; no response arrived for 30 seconds and the client cancelled the request","expected_severity":"HIGH","expected_signal":"timeout","case_type":"semantic"},
+  {"id":"semantic-disk-1","service":"node","logs":"filesystem /var/lib/containerd reached 100% usage and subsequent image-layer writes returned ENOSPC","expected_severity":"HIGH","expected_signal":"disk","case_type":"semantic"},
+  {"id":"semantic-5xx-1","service":"api","logs":"the generation endpoint became unavailable and nearly every request was rejected by the application layer after the latest deploy","expected_severity":"MEDIUM","expected_signal":"5xx","case_type":"semantic"},
+  {"id":"semantic-normal-1","service":"api","logs":"readiness stayed green for six hours, p95 latency remained near 42 ms, and no pod restarts were recorded","expected_severity":"LOW","expected_signal":"none","case_type":"semantic"},
+  {"id":"semantic-mixed-1","service":"llm-serving","logs":"device allocation demand exceeded the remaining accelerator capacity, the worker exited, and the gateway then began seeing reset connections","expected_severity":"CRITICAL","expected_signal":"memory","case_type":"semantic"}
+]

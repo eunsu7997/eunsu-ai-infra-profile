@@ -1,0 +1,102 @@
+name: incident-copilot-test
+on:
+  push:
+    branches: ["sk-hynix-portfolio"]
+    paths:
+      - "incident-copilot/**"
+      - ".github/workflows/incident-copilot-test.yml"
+  pull_request:
+    paths:
+      - "incident-copilot/**"
+      - ".github/workflows/incident-copilot-test.yml"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: incident-copilot
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Run tests
+        env:
+          PYTHONPATH: .
+        run: python -m pytest -q
+      - name: Evaluate deterministic incident classifier
+        run: |
+          PYTHONPATH=. python - <<'PY'
+          from app.analyzers import RuleAnalyzer
+          cases = [
+              ("llm","OOMKilled CUDA out of memory","CRITICAL"),
+              ("api","connection refused upstream","HIGH"),
+              ("api","deadline exceeded timeout","HIGH"),
+              ("api","HTTP 500 Internal Server Error","MEDIUM"),
+              ("node","no space left on device disk full","HIGH"),
+              ("api","application started normally","LOW"),
+              ("api","HTTP 500 then connection refused","HIGH"),
+              ("llm","timeout then OOMKilled CUDA out of memory","CRITICAL"),
+          ]
+          analyzer=RuleAnalyzer()
+          results=[analyzer.analyze(service,logs).severity == expected for service,logs,expected in cases]
+          print(f"severity_eval={sum(results)}/{len(results)}")
+          assert all(results)
+          PY
+      - name: Validate Docker Compose
+        run: docker compose config -q
+      - name: Validate Kubernetes manifest
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work alpine/helm:3.18.6 lint --strict .ci/incident-copilot-chart
+      - name: Build application image
+        run: docker build -t incident-copilot:ci .
+      - name: Smoke test container
+        run: |
+          docker run -d --name incident-copilot-ci -p 8000:8000 incident-copilot:ci
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:8000/healthz; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8000/healthz
+          curl -fsS -X POST http://127.0.0.1:8000/analyze -H 'Content-Type: application/json' -d '{"service":"gateway","logs":"upstream connection refused"}' | tee /tmp/analyze.json
+          grep -q '"severity":"HIGH"' /tmp/analyze.json
+          curl -fsSL http://127.0.0.1:8000/metrics/ | grep -q incident_analyses_total
+          docker rm -f incident-copilot-ci
+      - name: Validate monitoring stack
+        run: |
+          docker compose up -d prometheus grafana
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:9090/-/ready; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:9090/-/ready
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:3000/api/health; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:3000/api/health | tee /tmp/grafana-health.json
+          grep -q '"database": "ok"' /tmp/grafana-health.json
+          for i in {1..30}; do
+            curl -fsS 'http://127.0.0.1:9090/api/v1/query?query=up%7Bjob%3D%22incident-copilot%22%7D' > /tmp/prom-query.json
+            if grep -q '"value":\[.*,"1"' /tmp/prom-query.json; then break; fi
+            sleep 1
+          done
+          cat /tmp/prom-query.json
+          grep -q '"value":\[.*,"1"' /tmp/prom-query.json
+      - name: Run reproducible load smoke test
+        run: |
+          locust -f loadtest/locustfile.py --headless -u 10 -r 5 -t 10s --host http://127.0.0.1:8000 --csv /tmp/incident-load --only-summary
+          test -f /tmp/incident-load_stats.csv
+          cat /tmp/incident-load_stats.csv
+      - name: Container logs
+        if: always()
+        run: |
+          docker logs incident-copilot-ci || true
+          docker compose logs prometheus grafana || true
+      - name: Stop monitoring stack
+        if: always()
+        run: docker compose down -v || true
+      - name: Stop container
+        if: always()
+        run: docker rm -f incident-copilot-ci || true
