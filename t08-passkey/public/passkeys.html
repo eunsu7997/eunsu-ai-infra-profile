@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>내 패스키 관리 | EUNSU.INFRA T08</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="t08.css">
+  <script src="webauthn-client.js" defer></script>
+  <script src="passkeys.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="소개 페이지로 이동">EUNSU<span>.INFRA</span></a>
+    <nav aria-label="주요 메뉴">
+      <a href="/">공개 소개 페이지</a>
+      <a href="/#vault" class="nav-lock">🔒 나만 보는 자리</a>
+    </nav>
+  </header>
+
+  <main id="main" class="section passkey-page">
+    <p class="section-kicker">T08 / PASSKEYS</p>
+    <h1 class="page-title">내 패스키 관리</h1>
+    <p class="section-desc">패스키는 기기에 묶여 있습니다. 하나뿐이면 그 기기를 잃는 순간 들어올 수 없으니 <strong>두 개 이상</strong> 등록해 두세요.
+      서버에는 각 패스키의 <strong>공개키</strong>만 저장되어 있습니다.</p>
+
+    <div id="pkLocked" class="vault-card locked" hidden>
+      <p class="vault-state"><span aria-hidden="true">🔒</span> 패스키로 들어간 뒤에만 볼 수 있습니다.</p>
+      <a class="button primary" href="/#vault">들어가러 가기</a>
+    </div>
+
+    <div id="pkOpen" hidden>
+      <p class="vault-state"><span aria-hidden="true">🔓</span> <span id="pkOwner"></span> 계정의 패스키 <span id="pkCount"></span>개</p>
+      <table class="pk-table">
+        <caption class="sr-only">등록된 패스키 목록</caption>
+        <thead><tr><th scope="col">이름</th><th scope="col">등록한 날짜</th><th scope="col">마지막 사용</th><th scope="col">저장 위치(추정)</th><th scope="col"><span class="sr-only">작업</span></th></tr></thead>
+        <tbody id="pkRows"></tbody>
+      </table>
+
+      <div class="vault-card add-card">
+        <h2 class="add-title">패스키 추가</h2>
+        <p class="hint">같은 기기에는 같은 계정 패스키가 두 번 만들어지지 않을 수 있습니다. 창이 뜨면 <strong>“다른 기기 사용”(휴대폰 QR)</strong>이나 다른 저장 위치(구글 비밀번호 관리자 등)를 고르세요.</p>
+        <label for="pkName">새 패스키 이름</label>
+        <input id="pkName" type="text" maxlength="40" value="내 휴대폰" autocomplete="off">
+        <button id="pkAddBtn" class="button primary" type="button">패스키 추가</button>
+      </div>
+    </div>
+
+    <p id="pkMsg" class="vault-msg" role="status" aria-live="polite"></p>
+  </main>
+</body>
+</html>

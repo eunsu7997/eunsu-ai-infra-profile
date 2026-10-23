@@ -1,0 +1,9 @@
+{
+  "name": "t08-passkey",
+  "version": "1.0.0",
+  "description": "T08 — 1번 소개 페이지에 패스키(WebAuthn) 비공개 자리 달기. 외부 패키지 0개.",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=20" },
+  "license": "MIT"
+}

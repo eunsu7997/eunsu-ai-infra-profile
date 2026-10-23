@@ -1,0 +1,37 @@
+/* T08 비공개 영역 스타일 — 1번 style.css 변수 재사용 */
+[hidden]{display:none !important} /* .vault-card의 display:grid가 hidden 속성을 덮어쓰지 않게 */
+.nav-lock{color:var(--accent-2) !important}
+.vault{border-top:none;padding-top:40px}
+.vault-boundary{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 18px;margin-bottom:36px;border:2px dashed var(--accent-2);border-radius:12px;color:var(--accent-2);font-weight:900;font-size:14px;background:repeating-linear-gradient(135deg,rgba(159,195,255,.06) 0 12px,transparent 12px 24px)}
+.vault-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;margin-top:22px;display:grid;gap:12px;max-width:760px}
+.vault-card.open{border-color:#3a695f}
+.vault-state{margin:0;font-weight:900}
+.vault-items{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.vault-items li{display:grid;gap:2px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+.vault-items strong{color:var(--accent)}
+.vault-items span{color:#dce7ef}
+.vault-actions{display:flex;gap:10px;flex-wrap:wrap}
+.first-passkey{border-top:1px solid var(--line);padding-top:12px}
+.first-passkey summary{cursor:pointer;color:var(--muted);font-weight:800}
+.first-passkey[open]{display:grid;gap:8px}
+.hint{color:var(--muted);font-size:14px;margin:4px 0}
+label{font-weight:800;font-size:14px}
+select,input[type=text]{font:inherit;padding:9px 12px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--text);max-width:420px}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.button{cursor:pointer;border:1px solid var(--line)}
+button.primary{border-color:var(--accent)}
+button.secondary{background:transparent;color:var(--text)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.danger:hover:not(:disabled){border-color:#ff8f8f;color:#ffb4b4}
+.vault-msg{min-height:1.6em;font-weight:800;margin-top:16px}
+.vault-msg[data-kind=ok]{color:var(--accent)}
+.vault-msg[data-kind=error]{color:#ffb4b4}
+.vault-msg[data-kind=warn]{color:#ffd88a}
+.passkey-page{border-top:none;padding-top:40px}
+.page-title{font-size:clamp(32px,4vw,48px);margin:8px 0 12px}
+.pk-table{width:100%;border-collapse:collapse;margin-top:16px;font-size:14px}
+.pk-table th,.pk-table td{border-bottom:1px solid var(--line);padding:10px 8px;text-align:left;vertical-align:middle}
+.pk-table th{color:var(--muted)}
+.add-title{font-size:20px;margin:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:700px){.pk-table thead{display:none}.pk-table tr{display:grid;padding:8px 0;border-bottom:1px solid var(--line)}.pk-table td{border:none;padding:3px 0}}
