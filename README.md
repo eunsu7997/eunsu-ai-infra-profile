@@ -2,6 +2,18 @@
 
 AI 인프라 엔지니어를 준비하는 유은수의 공개 한 페이지 자기소개입니다.
 
+## 저장소 안의 과제
+
+| 위치 | 내용 | 안내 |
+| --- | --- | --- |
+| 루트 | T01 한 페이지 자기소개 | 아래 제출·검증 기록 |
+| [t02-mini-game/](t02-mini-game/) | T02 미니 게임 | [README](t02-mini-game/README.md) |
+| [t02-final/](t02-final/) | T02 제출 파일 | 해당 폴더의 파일 기준 |
+| [t03-card-studio/](t03-card-studio/) | T03 카드 스튜디오 | [README](t03-card-studio/README.md) |
+| [t08-passkey/](t08-passkey/) | T08 패스키 과제 | [README](t08-passkey/README.md) |
+
+아래 조건 대응표·수정 로그는 T01 기록입니다. 다른 과제의 현재 범위는 해당 폴더에서 확인합니다.
+
 ## 제출용 주소
 - 공개 결과물 URL: `https://eunsu7997.github.io/eunsu-ai-infra-profile/`
 - 소스 저장소 URL: `https://github.com/eunsu7997/eunsu-ai-infra-profile`
